@@ -26,7 +26,7 @@ namespace lsm{
     class SkipList_Node {
         
     public:
-        K key;
+        const K key;
         V value;
         SkipList_Node<K,V,MAXLEVEL>* _forward[MAXLEVEL+1];
         
@@ -60,35 +60,34 @@ namespace lsm{
         typedef SkipList_Node<K,V,MAXLEVEL> Node;
         const int max_level;
         
-        SkipList(K minKey,K maxKey):m_pHeader(NULL),m_pTail(NULL),
-        max_curr_level(1),max_level(MAXLEVEL),
-        m_minKey(minKey),m_maxKey(maxKey)
+        SkipList(K minKey,K maxKey):p_listHead(NULL),p_listTail(NULL),
+        cur_max_level(1),max_level(MAXLEVEL),
+        _minKey(minKey),_maxKey(maxKey)
         {
-            m_pHeader = new Node(m_minKey);
-            m_pTail = new Node(m_maxKey);
+            p_listHead = new Node(_minKey);
+            p_listTail = new Node(_maxKey);
             for (int i=1; i<=MAXLEVEL; i++) {
-                m_pHeader->_forward[i] = m_pTail;
+                p_listHead->_forward[i] = p_listTail;
             }
         }
         
         virtual ~SkipList()
         {
-            Node* currNode = m_pHeader->_forward[1];
-            while (currNode != m_pTail) {
+            Node* currNode = p_listHead->_forward[1];
+            while (currNode != p_listTail) {
                 Node* tempNode = currNode;
                 currNode = currNode->_forward[1];
                 delete tempNode;
             }
-            delete m_pHeader;
-            delete m_pTail;
+            delete p_listHead;
+            delete p_listTail;
         }
         
-        void insert_key(const K key,V value)
-        {
+        void insert_key(const K key,V value) {
 //            SkipList_Node<K,V,MAXLEVEL>* update[MAXLEVEL];
             Node* update[MAXLEVEL];
-            Node* currNode = m_pHeader;
-            for(int level=max_curr_level; level > 0; level--) {
+            Node* currNode = p_listHead;
+            for(int level = cur_max_level; level > 0; level--) {
                 while (currNode->_forward[level]->key < key) {
                     currNode = currNode->_forward[level];
                 }
@@ -102,26 +101,25 @@ namespace lsm{
             else {
                 // if key isn't in the list, insert a new node!
                 int insertLevel = generateNodeLevel();
-                if (insertLevel > max_curr_level) {
-                    for (int level = max_curr_level + 1; level <= insertLevel; level++) {
-                        update[level] = m_pHeader;
+                if (insertLevel > cur_max_level) {
+                    for (int level = cur_max_level + 1; level <= insertLevel; level++) {
+                        update[level] = p_listHead;
                     }
-                    max_curr_level = insertLevel;
+                    cur_max_level = insertLevel;
                 }
                 currNode = new Node(key,value);
-                for (int lv=1; lv<=max_curr_level; lv++) {
-                    currNode->_forward[lv] = update[lv]->_forward[lv];
-                    update[lv]->_forward[lv] = currNode;
+                for (int level = 1; level <= cur_max_level; level++) {
+                    currNode->_forward[level] = update[level]->_forward[level];
+                    update[level]->_forward[level] = currNode;
                 }
             }
         }
         
-        void delete_key(const K searchKey)
-        {
+        void delete_key(const K searchKey) {
 //            SkipList_Node<K,V,MAXLEVEL>* update[MAXLEVEL];
             Node* update[MAXLEVEL];
-            Node* currNode = m_pHeader;
-            for(int level=max_curr_level; level >=1; level--) {
+            Node* currNode = p_listHead;
+            for(int level=cur_max_level; level >=1; level--) {
                 while (currNode->_forward[level]->key < searchKey) {
                     currNode = currNode->_forward[level];
                 }
@@ -129,24 +127,23 @@ namespace lsm{
             }
             currNode = currNode->_forward[1];
             if (currNode->key == searchKey) {
-                for (int lv = 1; lv <= max_curr_level; lv++) {
-                    if (update[lv]->_forward[lv] != currNode) {
+                for (int level = 1; level <= cur_max_level; level++) {
+                    if (update[level]->_forward[level] != currNode) {
                         break;
                     }
-                    update[lv]->_forward[lv] = currNode->_forward[lv];
+                    update[level]->_forward[level] = currNode->_forward[level];
                 }
                 delete currNode;
                 // update the max level
-                while (max_curr_level > 1 && m_pHeader->_forward[max_curr_level] == NULL) {
-                    max_curr_level--;
+                while (cur_max_level > 1 && p_listHead->_forward[cur_max_level] == NULL) {
+                    cur_max_level--;
                 }
             }
         }
         
-        V lookup(const K searchKey)
-        {
-            Node* currNode = m_pHeader;
-            for(int level=max_curr_level; level >=1; level--) {
+        V lookup(const K searchKey) {
+            Node* currNode = p_listHead;
+            for(int level=cur_max_level; level >=1; level--) {
                 while (currNode->_forward[level]->key < searchKey) {
                     currNode = currNode->_forward[level];
                 }
@@ -160,9 +157,8 @@ namespace lsm{
             }
         }
         
-        bool empty() const
-        {
-            return (m_pHeader->_forward[1] == m_pTail);
+        inline bool empty() {
+            return (p_listHead->_forward[1] == p_listTail);
         }
         
         
@@ -177,12 +173,12 @@ namespace lsm{
             }
             return level;
         }
-        K m_minKey;
-        K m_maxKey;
-        int max_curr_level;
-        Node* m_pHeader;
-        Node* m_pTail;
-        //        SkipList_Node<K,V,MAXLEVEL>* m_pTail;
+        K _minKey;
+        K _maxKey;
+        int cur_max_level;
+        Node* p_listHead;
+        Node* p_listTail;
+        //        SkipList_Node<K,V,MAXLEVEL>* p_listTail;
 
     };
 }

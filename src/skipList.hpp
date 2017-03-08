@@ -171,7 +171,11 @@ namespace lsm{
     private:
         
         int generateNodeLevel() {
+            if (ffs(random() & ((1 << MAXLEVEL) - 1)) == 14){
+                std::cout << "WOOT" << std::endl;
+            }
             return ffs(random() & ((1 << MAXLEVEL) - 1));
+            
         }
         
         K _minKey;
@@ -180,6 +184,7 @@ namespace lsm{
         int cur_max_level;
         Node* p_listHead;
         Node* p_listTail;
+        uint32_t _keysPerLevel[MAXLEVEL];
         //        SkipList_Node<K,V,MAXLEVEL>* p_listTail;
 
     };

@@ -15,11 +15,21 @@
 
 
 int main(){
+//    weird level gen stuff...
     
+//    int x[16];
+//    for (int i = 0; i < 1000000; i++){
+//        x[ffs(random() & ((1 << 16) - 1))] += 1;
+//    }
+//    
+//    for (int i = 0; i < 16; i++){
+//        std::cout << i << " " << x[i] << "\n";
+//    }
+
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(INT32_MIN,INT32_MAX);
     
-    const int num_inserts = 10000;
+    const int num_inserts = 20000;
     const int max_levels = 16;
     lsm::SkipList<int32_t, int32_t, max_levels> sl = lsm::SkipList<int32_t, int32_t, max_levels>(INT32_MIN,INT32_MAX);
     

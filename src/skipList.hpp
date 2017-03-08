@@ -15,7 +15,6 @@
 
 #include "run.hpp"
 
-
 std::default_random_engine generator;
 std::uniform_real_distribution<double> distribution(0.0,1.0);
 const double NODE_PROBABILITY = 0.5;
@@ -101,9 +100,10 @@ namespace lsm{
             else {
                 // if key isn't in the list, insert a new node!
                 int insertLevel = generateNodeLevel();
-                if (insertLevel > cur_max_level) {
-                    for (int level = cur_max_level + 1; level <= insertLevel; level++) {
-                        update[level] = p_listHead;
+                
+                if (insertLevel > cur_max_level && insertLevel < MAXLEVEL - 1) {
+                    for (int lv = cur_max_level + 1; lv <= insertLevel; lv++) {
+                        update[lv] = p_listHead;
                     }
                     cur_max_level = insertLevel;
                 }

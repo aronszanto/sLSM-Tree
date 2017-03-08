@@ -166,13 +166,9 @@ namespace lsm{
     private:
         
         int generateNodeLevel() {
-            int level = 1;
-            
-            while (distribution(generator) < NODE_PROBABILITY && level < MAXLEVEL) {
-                level++;
-            }
-            return level;
+            return ffs(random() & ((1 << MAXLEVEL) - 1));
         }
+        
         K _minKey;
         K _maxKey;
         int cur_max_level;

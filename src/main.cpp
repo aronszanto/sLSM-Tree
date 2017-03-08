@@ -33,10 +33,12 @@ int main(){
     for (int i = 0; i < num_inserts; i++) {
         sl.insert_key(to_insert[i], i);
     }
+
     double total_insert = (std::clock() - start_insert) / (double)(CLOCKS_PER_SEC);
     
     std::cout << "Time: " << total_insert << " s" << std::endl;
     std::cout << "Inserts per second: " << num_inserts / total_insert << " s" << std::endl;
+    std::cout << sl.num_elements() << std::endl;
     
     
     

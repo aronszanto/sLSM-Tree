@@ -61,7 +61,7 @@ namespace lsm{
         
         SkipList(K minKey,K maxKey):p_listHead(NULL),p_listTail(NULL),
         cur_max_level(1),max_level(MAXLEVEL),
-        _minKey(minKey),_maxKey(maxKey)
+        _minKey(minKey),_maxKey(maxKey), _n(0)
         {
             p_listHead = new Node(_minKey);
             p_listTail = new Node(_maxKey);
@@ -113,6 +113,8 @@ namespace lsm{
                     update[level]->_forward[level] = currNode;
                 }
             }
+            
+            _n++;
         }
         
         void delete_key(const K searchKey) {
@@ -139,6 +141,7 @@ namespace lsm{
                     cur_max_level--;
                 }
             }
+            _n--;
         }
         
         V lookup(const K searchKey) {
@@ -162,7 +165,9 @@ namespace lsm{
         }
         
         
-        
+        uint32_t num_elements() {
+            return _n;
+        }
     private:
         
         int generateNodeLevel() {
@@ -171,6 +176,7 @@ namespace lsm{
         
         K _minKey;
         K _maxKey;
+        uint32_t _n;
         int cur_max_level;
         Node* p_listHead;
         Node* p_listTail;

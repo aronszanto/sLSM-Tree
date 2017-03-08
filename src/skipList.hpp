@@ -171,6 +171,13 @@ namespace lsm{
     private:
         
         int generateNodeLevel() {
+//            int level = 1;
+//            
+//            while (distribution(generator) < NODE_PROBABILITY && level < MAXLEVEL) {
+//                level++;
+//            }
+//            return level;
+            
             if (ffs(random() & ((1 << MAXLEVEL) - 1)) == 14){
                 std::cout << "WOOT" << std::endl;
             }

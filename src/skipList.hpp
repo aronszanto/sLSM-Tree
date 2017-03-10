@@ -168,26 +168,26 @@ namespace lsm{
         uint32_t num_elements() {
             return _n;
         }
-    private:
+        
+        void set_size(size_t size){
+            _maxSize = size;
+        }
+        
+        size_t get_size(){
+            return _n * (sizeof(K) + sizeof(V));
+        }
+        
+//    private:
         
         int generateNodeLevel() {
-//            int level = 1;
-//            
-//            while (distribution(generator) < NODE_PROBABILITY && level < MAXLEVEL) {
-//                level++;
-//            }
-//            return level;
-            
-            if (ffs(random() & ((1 << MAXLEVEL) - 1)) == 14){
-                std::cout << "WOOT" << std::endl;
-            }
-            return ffs(random() & ((1 << MAXLEVEL) - 1));
-            
+        
+            return ffs(rand() & ((1 << MAXLEVEL) - 1)) - 1;            
         }
         
         K _minKey;
         K _maxKey;
         uint32_t _n;
+        size_t _maxSize;
         int cur_max_level;
         Node* p_listHead;
         Node* p_listTail;

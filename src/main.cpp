@@ -16,16 +16,21 @@
 
 int main(){
 //    weird level gen stuff...
-    
-//    int x[16];
-//    for (int i = 0; i < 1000000; i++){
-//        x[ffs(random() & ((1 << 16) - 1))] += 1;
-//    }
-//    
-//    for (int i = 0; i < 16; i++){
-//        std::cout << i << " " << x[i] << "\n";
-//    }
+    std::printf("%x\n",random());
+    std::printf("%x\n",(1 << 16) - 1);
 
+    
+    //return 0;
+    auto s =lsm::SkipList<int32_t, int32_t, 16>(INT32_MIN,INT32_MAX);
+    int x[16];
+    for (int i = 0; i < 1000000; i++){
+        x[s.generateNodeLevel()] += 1;
+    }
+    
+    for (int i = 0; i < 16; i++){
+        std::cout << i << " " << x[i] << "\n";
+    }
+    return 0;
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(INT32_MIN,INT32_MAX);
     

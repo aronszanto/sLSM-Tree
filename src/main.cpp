@@ -15,9 +15,6 @@
 
 
 int main(){
-//    weird level gen stuff...
-    std::printf("%x\n",random());
-    std::printf("%x\n",(1 << 16) - 1);
 
     
     //return 0;

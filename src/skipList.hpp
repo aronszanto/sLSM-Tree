@@ -83,7 +83,6 @@ namespace lsm{
         }
         
         void insert_key(const K key,V value) {
-//            SkipList_Node<K,V,MAXLEVEL>* update[MAXLEVEL];
             Node* update[MAXLEVEL];
             Node* currNode = p_listHead;
             for(int level = cur_max_level; level > 0; level--) {

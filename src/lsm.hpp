@@ -10,6 +10,7 @@
 #define LSM_H
 
 #include "run.hpp"
+#include "skipList.hpp"
 #include <cstdio>
 #include <cstdint>
 #include <vector>
@@ -22,12 +23,12 @@ namespace lsm {
         
         
         public:
-        std::vector<Run<K,V>> C_0;
+        std::vector<Run<K,V> *> C_0;
             
-            LSM<RunType, K,V>(size_t initialSize, size_t runSize, double sizeRatio):_sizeRatio(sizeRatio),_runSize(runSize),_initialSize(initialSize) {
+            LSM<K,V>(size_t initialSize, size_t runSize, double sizeRatio):_sizeRatio(sizeRatio),_runSize(runSize),_initialSize(initialSize) {
                 unsigned num_runs = initialSize / runSize;
                 for (int i = 0; i < num_runs; i++){
-                    RunType * run = new RunType();
+                    RunType * run = new RunType(INT32_MIN,INT32_MAX);
                     run->set_size(runSize);
                     C_0.push_back(run);
                     

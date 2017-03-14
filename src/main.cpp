@@ -16,6 +16,7 @@
 
 int main(){
 
+    auto lsmTree = lsm::LSM<int32_t, int32_t>(8192, 1024, 2);
     
     //return 0;
     auto s =lsm::SkipList<int32_t, int32_t, 16>(INT32_MIN,INT32_MAX);

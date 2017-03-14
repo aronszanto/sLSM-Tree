@@ -55,6 +55,7 @@ namespace lsm {
             return NULL;
         }
         
+        
         unsigned long long num_elements(){
             unsigned long long total = 0;
             for (int i = 0; i <= _activeRun; ++i)

@@ -160,6 +160,10 @@ namespace lsm{
             }
         }
         
+        bool eltIn(K key) {
+            return lookup(key);
+        }
+        
         inline bool empty() {
             return (p_listHead->_forward[1] == p_listTail);
         }

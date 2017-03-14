@@ -33,7 +33,7 @@ namespace lsm {
                 C_0.push_back(run);
             }
             _activeRun = 0;
-            _eltsPerRun = _runSize / sizeof(V);
+            _eltsPerRun = _runSize / sizeof(K);
         }
         
         void insert_key(K key, V value) {
@@ -53,6 +53,13 @@ namespace lsm {
                     return lookupRes;
             }
             return NULL;
+        }
+        
+        unsigned long long num_elements(){
+            unsigned long long total = 0;
+            for (int i = 0; i <= _activeRun; ++i)
+                total += C_0[i]->num_elements();
+            return total;
         }
         
         // how do you do disk stuff?

@@ -21,7 +21,7 @@ namespace lsm {
         virtual void insert_key(const K key, const V value) = 0;
         virtual void delete_key(const K key) = 0;
         virtual V lookup(K key) = 0;
-        virtual uint32_t num_elements() = 0;
+        virtual unsigned long long num_elements() = 0;
         virtual void set_size(const size_t size) = 0;
     };
     

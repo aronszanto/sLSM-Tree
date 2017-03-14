@@ -165,7 +165,7 @@ namespace lsm{
         }
         
         
-        uint32_t num_elements() {
+        unsigned long long num_elements() {
             return _n;
         }
         
@@ -186,7 +186,7 @@ namespace lsm{
         
         K _minKey;
         K _maxKey;
-        uint32_t _n;
+        unsigned long long _n;
         size_t _maxSize;
         int cur_max_level;
         Node* p_listHead;

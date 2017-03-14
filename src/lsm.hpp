@@ -22,29 +22,48 @@ namespace lsm {
         typedef SkipList<K,V> RunType;
         
         
-        public:
+    public:
         std::vector<Run<K,V> *> C_0;
-            
-            LSM<K,V>(size_t initialSize, size_t runSize, double sizeRatio):_sizeRatio(sizeRatio),_runSize(runSize),_initialSize(initialSize) {
-                unsigned num_runs = initialSize / runSize;
-                for (int i = 0; i < num_runs; i++){
-                    RunType * run = new RunType(INT32_MIN,INT32_MAX);
-                    run->set_size(runSize);
-                    C_0.push_back(run);
-                    
-                    
-                }
-                
+        
+        LSM<K,V>(size_t initialSize, size_t runSize, double sizeRatio):_sizeRatio(sizeRatio),_runSize(runSize),_initialSize(initialSize) {
+            unsigned long num_runs = initialSize / runSize;
+            for (int i = 0; i < num_runs; i++){
+                RunType * run = new RunType(INT32_MIN,INT32_MAX);
+                run->set_size(runSize);
+                C_0.push_back(run);
             }
+            _activeRun = 0;
+            _eltsPerRun = _runSize / sizeof(V);
+        }
+        
+        void insert_key(K key, V value) {
             
-            // how do you do disk stuff?
-        private:
-            double _sizeRatio;
-            size_t _runSize;
-            size_t _initialSize;
+            if (C_0[_activeRun]->num_elements() >= _eltsPerRun)
+                ++_activeRun;
+            
+            // TODO: if (C_0_full) then merge
+            
+            C_0[_activeRun]->insert_key(key,value);
+        }
+        
+        V lookup(K key){
+            for (int i = _activeRun; i >= 0; --i){
+                V lookupRes = C_0[i]->lookup(key);
+                if (lookupRes)
+                    return lookupRes;
+            }
+            return NULL;
+        }
+        
+        // how do you do disk stuff?
+    private:
+        double _sizeRatio;
+        size_t _runSize;
+        size_t _initialSize;
+        unsigned _activeRun;
+        unsigned _eltsPerRun;
         
     };
-    
 }
 
 

@@ -26,8 +26,8 @@ void insertLookupTest(){
     const int num_runs = 9;
     const int total_size = num_inserts * sizeof(int);
     const int run_size = total_size / num_runs;
-    lsm::SkipList<int32_t, int32_t, max_levels>(INT32_MIN,INT32_MAX);
-    lsm::LSM<int32_t, int32_t> lsmTree = lsm::LSM<int32_t, int32_t>(total_size, run_size, 2);
+    SkipList<int32_t, int32_t, max_levels>(INT32_MIN,INT32_MAX);
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(total_size, run_size, 2);
     
     std::vector<int> to_insert;
     for (int i = 0; i < num_inserts; i++) {

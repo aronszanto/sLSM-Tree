@@ -12,7 +12,6 @@
 #include <cstdint>
 
 
-namespace lsm {
     
     template <class K, class V>
     class Run {
@@ -26,7 +25,6 @@ namespace lsm {
     };
     
     
-}
 
 
 #endif /* run_h */

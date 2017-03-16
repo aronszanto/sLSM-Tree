@@ -15,25 +15,23 @@
 #include "MurmurHash.h"
 
 using namespace std;
-namespace lsm {
+
+template<class Key, class Hash = hash<Key>>
+class BloomFilter {
+public:
+    BloomFilter(uint64_t size, uint8_t numHashes)
+    : m_bits(size),
+    m_numHashes(numHashes) {}
     
-    template<class Key, class Hash = hash<Key>>
-    class BloomFilter {
-    public:
-        BloomFilter(uint64_t size, uint8_t numHashes)
-        : m_bits(size),
-        m_numHashes(numHashes) {}
-        
-        void add(const uint8_t *data, size_t len);
-        bool possiblyContains(const Key *data, size_t len) const;
-        
-    private:
-        uint8_t m_numHashes;
-        vector<bool> m_bits;
-    };
+    void add(const uint8_t *data, size_t len);
+    bool possiblyContains(const Key *data, size_t len) const;
     
-    
-}
+private:
+    uint8_t m_numHashes;
+    vector<bool> m_bits;
+};
+
+
 
 
 #endif /* bloom_h */

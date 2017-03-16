@@ -11,16 +11,15 @@
 #include <ctime>
 #include <iostream>
 #include "skipList.hpp"
+#include "bloom.hpp"
 #include "lsm.hpp"
 
 using namespace std;
-int main(){
-
-    
+void insertLookupTest(){
     std::random_device                  rand_dev;
     std::mt19937                        generator(rand_dev());
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
-
+    
     
     const int num_inserts = 900000;
     const int max_levels = 16;
@@ -53,6 +52,12 @@ int main(){
         if (lookup != i)
             cout << "LOOKUP TEST FAILED ON ITERATION " << i << ". Got " << i << " but was expecting " << lookup << ".\n";
     }
+
+}
+
+int main(){
+
+    
     
     return 0;
     

@@ -26,8 +26,8 @@ void bloomFilterTest(){
     std::mt19937                        generator(rand_dev());
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
   
-    const int num_inserts = 100000;
-    double fprate = .00001;
+    const int num_inserts = 10;
+    double fprate = .1;
     BloomFilter<int32_t> bf = BloomFilter<int32_t>(num_inserts, fprate);
     
     std::vector<int> to_insert;
@@ -69,9 +69,9 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 900000;
+    const int num_inserts = 10000000;
     const int max_levels = 16;
-    const int num_runs = 9;
+    const int num_runs = 10000;
     const int total_size = num_inserts * sizeof(int);
     const int run_size = total_size / num_runs;
     SkipList<int32_t, int32_t, max_levels>(INT32_MIN,INT32_MAX);
@@ -93,20 +93,26 @@ void insertLookupTest(){
     
     std::cout << "Time: " << total_insert << " s" << std::endl;
     std::cout << "Inserts per second: " << (int) num_inserts / total_insert << " s" << std::endl;
-    std::cout << lsmTree.num_elements() << std::endl;
     
-    for (int i = 0; i < num_inserts; i++) {
+    std::clock_t    start_lookup;
+    std::cout << "Starting lookups" << std::endl;
+    start_lookup = std::clock();
+
+    for (int i = 0 ; i < num_inserts; i++) {
         int lookup = lsmTree.lookup(to_insert[i]);
         if (lookup != i)
-            cout << "LOOKUP TEST FAILED ON ITERATION " << i << ". Got " << i << " but was expecting " << lookup << ".\n";
+            cout << "LOOKUP TEST FAILED ON ITERATION " << i << ". Got " << lookup << " but was expecting " << to_insert[i] << ".\n";
     }
+    double total_lookup = (std::clock() - start_lookup) / (double)(CLOCKS_PER_SEC);
 
+    std::cout << "Time: " << total_lookup << " s" << std::endl;
+    std::cout << "Lookups per second: " << (int) num_inserts / total_lookup << " s" << std::endl;
 }
 
 int main(){
 
     
-    bloomFilterTest();
+    insertLookupTest();
     return 0;
     
 }

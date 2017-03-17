@@ -43,7 +43,7 @@ public:
         return hashValue;
     }
     
-    uint64_t nthHash(uint8_t n, uint64_t hashA, uint64_t hashB, uint64_t filterSize) {
+    uint64_t nthHash(uint32_t n, uint64_t hashA, uint64_t hashB, uint64_t filterSize) {
         return (hashA + n * hashB) % filterSize;
     }
     

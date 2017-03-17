@@ -18,9 +18,46 @@
 #include "lsm.hpp"
 
 
-int main(){
-    std::default_random_engine generator;
-    std::uniform_int_distribution<int> distribution(INT32_MIN,INT32_MAX);
+using namespace std;
+
+
+void bloomFilterTest(){
+    std::random_device                  rand_dev;
+    std::mt19937                        generator(rand_dev());
+    std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
+  
+    const int num_inserts = 10;
+    double fprate = .1;
+    BloomFilter<int32_t> bf = BloomFilter<int32_t>(num_inserts, fprate);
+    
+    std::vector<int> to_insert;
+    for (int i = 0; i < num_inserts; i++) {
+        int insert = distribution(generator);
+        to_insert.push_back(insert);
+    }
+    std::clock_t    start_insert;
+    std::cout << "Starting inserts" << std::endl;
+    start_insert = std::clock();
+    for (int i = 0; i < num_inserts; i++) {
+        bf.add(&i, sizeof(i));
+    }
+    
+    double total_insert = (std::clock() - start_insert) / (double)(CLOCKS_PER_SEC);
+    
+    std::cout << "Time: " << total_insert << " s" << std::endl;
+    std::cout << "Inserts per second: " << (int) num_inserts / total_insert << " s" << std::endl;
+    int fp = 0;
+    for (int i = num_inserts; i < 2 * num_inserts; i++) {
+        bool lookup = bf.mayContain(&i, sizeof(i));
+        if (lookup){
+            // cout << i << " found but didn't exist" << endl;
+            fp++;
+        }
+    }
+    cout << fp << endl;
+    cout << "FP rate: " << ((double) fp / double(num_inserts)) << endl;
+
+    
     
     
     

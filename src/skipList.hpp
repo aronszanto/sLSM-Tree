@@ -91,13 +91,18 @@ public:
             }
             update[level] = currNode;
         }
-        
-        void insert_key(const K key,V value) {
-            Node* update[MAXLEVEL];
-            Node* currNode = p_listHead;
-            for(int level = cur_max_level; level > 0; level--) {
-                while (currNode->_forward[level]->key < key) {
-                    currNode = currNode->_forward[level];
+        currNode = currNode->_forward[1];
+        if (currNode->key == key) {
+            // update the value if the key already exists
+            currNode->value = value;
+        }
+        else {
+            // if key isn't in the list, insert a new node!
+            int insertLevel = generateNodeLevel();
+            
+            if (insertLevel > cur_max_level && insertLevel < MAXLEVEL - 1) {
+                for (int lv = cur_max_level + 1; lv <= insertLevel; lv++) {
+                    update[lv] = p_listHead;
                 }
                 cur_max_level = insertLevel;
             }

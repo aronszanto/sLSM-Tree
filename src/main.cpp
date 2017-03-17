@@ -27,16 +27,8 @@ void bloomFilterTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
   
     const int num_inserts = 100000;
-    double fprate = .04;
-    double denom = 0.480453013918201; // (ln(2))^2
-    uint64_t size = -1 * num_inserts * (log(fprate) / denom);
-    
-    double ln2 = 0.693147180559945;
-    
-    uint8_t numHashes = (int) ceil( (size / num_inserts) * ln2);  // ln(2)
-    
-    printf("%llu,%i\n", size, numHashes);
-    BloomFilter<int32_t> bf = BloomFilter<int32_t>(size, numHashes);
+    double fprate = .00001;
+    BloomFilter<int32_t> bf = BloomFilter<int32_t>(num_inserts, fprate);
     
     std::vector<int> to_insert;
     for (int i = 0; i < num_inserts; i++) {
@@ -58,7 +50,7 @@ void bloomFilterTest(){
     for (int i = num_inserts; i < 2 * num_inserts; i++) {
         bool lookup = bf.mayContain(&i, sizeof(i));
         if (lookup){
-            cout << i << " found but didn't exist" << endl;
+            // cout << i << " found but didn't exist" << endl;
             fp++;
         }
     }

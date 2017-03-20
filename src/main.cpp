@@ -141,7 +141,7 @@ void runInOrderTest() {
 }
 
 void diskLevelTest(){
-    const int num_inserts = 100;
+    const int num_inserts = 10000;
     const int max_levels = 16;
     const int num_runs = 1;
     const int total_size = num_inserts * (2 * sizeof(int));

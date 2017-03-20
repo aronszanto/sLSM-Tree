@@ -30,7 +30,7 @@ class DiskLevel {
 public:
     typedef KVPair<K,V> KVPair_t;
     
-    DiskLevel<K,V> (unsigned long long capacity, unsigned long long numElts, int level, KVPair_t *pairs):_capacity(capacity),_numElts(numElts),_level(level) {
+    DiskLevel<K,V> (unsigned long long capacity, unsigned long long numElts, int level, KVPair_t *pairs):_capacity(capacity),_numElts(numElts),_level(level), _iMaxFP(0) {
         
         _filename = ("C_" + to_string(level) + ".txt").c_str();
         
@@ -86,10 +86,27 @@ public:
         
         close(fd);
         
+        _fencePointers.resize(0);
+        for (int j = 0; j * PAGESIZE < _numElts; j++) {
+            _fencePointers.push_back(pairs[j * PAGESIZE].key);
+            _iMaxFP++;
+        }
+
         
         
         
+    
+    }
+    void updateFencePointers(){
+        _fencePointers.resize(_numElts / PAGESIZE);
         
+        size_t filesize = _numElts * sizeof(KVPair_t);
+        
+        int i;
+        int fd;
+        long result;
+        KVPair<K, V> *map;  /* mmapped array of KVPairs */
+
         
         fd = open(_filename, O_RDONLY);
         if (fd == -1) {
@@ -106,18 +123,16 @@ public:
         
         /* Read the file int-by-int from the mmap
          */
-        for (i = 0; i < _numElts; ++i) {
-            printf("I%d: K %d V %d \n", i, map[i].key, map[i].value);
+        for (i = 0; i < _numElts; i++) {
+            _fencePointers[i] = map[i * PAGESIZE].key;
         }
         
-            if (munmap(map, _numElts * sizeof(KVPair_t)) == -1) {
+        if (munmap(map, _numElts * sizeof(KVPair_t)) == -1) {
             perror("Error un-mmapping the file");
         }
         close(fd);
-    
-    }
-    void updateFencePointers(){
-        return;
+
+        
     }
 private:
     unsigned long long _capacity;
@@ -125,6 +140,7 @@ private:
     const char  *_filename;
     int _level;
     vector<K> _fencePointers;
+    unsigned _iMaxFP;
     
     
     

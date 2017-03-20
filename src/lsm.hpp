@@ -12,6 +12,7 @@
 #include "run.hpp"
 #include "skipList.hpp"
 #include "bloom.hpp"
+#include "diskLevel.hpp"
 #include <cstdio>
 #include <cstdint>
 #include <vector>
@@ -24,18 +25,16 @@ class LSM {
     
     typedef SkipList<K,V> RunType;
     
-    typedef struct DiskLevel {
-        
-    } DiskLevel;
     
     
 public:
-    std::vector<Run<K,V> *> C_0;
+    vector<Run<K,V> *> C_0;
+    
     vector<BloomFilter<K> *> filters;
     
     LSM<K,V>(size_t initialSize, size_t runSize, double sizeRatio):_sizeRatio(sizeRatio),_runSize(runSize),_initialSize(initialSize) {
         _activeRun = 0;
-        _eltsPerRun = _runSize / sizeof(K);
+        _eltsPerRun = _runSize / sizeof(KVPair<K, V>);
         _bfFalsePositiveRate = BF_FP_RATE;
         
         unsigned long num_runs = initialSize / runSize;

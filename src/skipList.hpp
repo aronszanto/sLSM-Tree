@@ -167,7 +167,7 @@ public:
     vector<KVPair<K,V>> get_all(){
         vector<KVPair<K,V>> vec = vector<KVPair<K, V>>();
         auto node = p_listHead->_forward[1];
-        while ( node ){
+        while ( node != p_listTail){
             KVPair<K,V> kv = {node->key, node->value};
             vec.push_back(kv);
             node = node->_forward[1];

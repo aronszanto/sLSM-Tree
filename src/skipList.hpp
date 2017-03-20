@@ -11,17 +11,21 @@
 #include <cstdint>
 #include <cstdlib>
 #include <random>
+#include <vector>
 #include <string>
 
 #include "run.hpp"
+using namespace std;
 
-std::default_random_engine generator;
-std::uniform_real_distribution<double> distribution(0.0,1.0);
+default_random_engine generator;
+uniform_real_distribution<double> distribution(0.0,1.0);
 const double NODE_PROBABILITY = 0.5;
 
 
 template<class K,class V, unsigned MAXLEVEL>
 class SkipList_Node {
+   
+    
     
 public:
     const K key;
@@ -55,6 +59,7 @@ template<class K, class V, int MAXLEVEL = 16>
 class SkipList : public Run<K,V>
 {
 public:
+    
     typedef SkipList_Node<K,V,MAXLEVEL> Node;
     const int max_level;
     
@@ -157,6 +162,19 @@ public:
         else {
             return NULL;
         }
+    }
+    
+    vector<KVPair<K,V>> get_all(){
+        vector<KVPair<K,V>> vec = vector<KVPair<K, V>>();
+        auto node = p_listHead->_forward[1];
+        while ( node ){
+            KVPair<K,V> kv = {node->key, node->value};
+            vec.push_back(kv);
+            node = node->_forward[1];
+        }
+        return vec;
+        
+        
     }
     
     bool eltIn(K key) {

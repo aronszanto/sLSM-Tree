@@ -21,8 +21,12 @@ const double BF_FP_RATE = .05;
 
 template <class K, class V>
 class LSM {
+    
     typedef SkipList<K,V> RunType;
     
+    typedef struct DiskLevel {
+        
+    } DiskLevel;
     
     
 public:
@@ -59,6 +63,7 @@ public:
     }
     
     V lookup(K key){
+        // TODO keep track of min/max in runs?
 //        cout << "looking for key " << key << endl;
         for (int i = _activeRun; i >= 0; --i){
 //            cout << "... in run/filter " << i << endl;
@@ -81,7 +86,7 @@ public:
     }
     
     // how do you do disk stuff?
-private:
+//private: // TODO MAKE PRIVATE
     double _sizeRatio;
     size_t _runSize;
     size_t _initialSize;

@@ -16,8 +16,21 @@ using namespace std;
 
 template <typename K, typename V>
 struct KVPair {
+    
     K key;
     V value;
+    
+    bool operator==(KVPair kv) const {
+        return (kv.key == key && kv.value == value);
+    }
+    
+    bool operator<(KVPair kv) const{
+        return key < kv.key;
+    }
+    
+    bool operator>(KVPair kv) const{
+        return key > kv.key;
+    }
 };
 
     template <class K, class V>

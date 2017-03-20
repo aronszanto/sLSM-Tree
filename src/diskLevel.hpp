@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <cassert>
 
 #define PAGESIZE 4096
 
@@ -27,29 +28,26 @@ using namespace std;
 template <class K, class V>
 class DiskLevel {
 public:
+    typedef KVPair<K,V> KVPair_t;
     
-    
-    DiskLevel<K,V> (unsigned long long capacity, unsigned long long numElts, int level, vector<KVPair<K,V>> &pairs):_capacity(capacity),_numElts(numElts),_level(level) {
+    DiskLevel<K,V> (unsigned long long capacity, unsigned long long numElts, int level, KVPair_t *pairs):_capacity(capacity),_numElts(numElts),_level(level) {
+        
         _filename = ("C_" + to_string(level) + ".txt").c_str();
-        size_t filesize = capacity * sizeof(KVPair<K,V>);
+        
+        size_t filesize = capacity * sizeof(KVPair_t);
+
         int i;
         int fd;
         long result;
         KVPair<K, V> *map;  /* mmapped array of KVPairs */
         
-        /* Open a file for writing.
-         *  - Creating the file if it doesn't exist.
-         *  - Truncating it to 0 size if it already exists. (not really needed)
-         *
-         * Note: "O_WRONLY" mode is not sufficient when mmaping.
-         */
         fd = open(_filename, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
         if (fd == -1) {
             perror("Error opening file for writing");
             exit(EXIT_FAILURE);
         }
         
-        /* Stretch the file size to the size of the (mmapped) array of ints
+        /* Stretch the file size to the size of the (mmapped) array of KVPairs
          */
         result = lseek(fd, filesize - 1, SEEK_SET);
         if (result == -1) {
@@ -58,16 +56,7 @@ public:
             exit(EXIT_FAILURE);
         }
         
-        /* Something needs to be written at the end of the file to
-         * have the file actually have the new size.
-         * Just writing an empty string at the current file position will do.
-         *
-         * Note:
-         *  - The current position in the file is at the end of the stretched
-         *    file due to the call to lseek().
-         *  - An empty string is actually a single '\0' character, so a zero-byte
-         *    will be written at the last byte of the file.
-         */
+        
         result = write(fd, "", 1);
         if (result != 1) {
             close(fd);
@@ -84,20 +73,17 @@ public:
             exit(EXIT_FAILURE);
         }
         
-        /* Now write int's to the file as if it were memory (an array of ints).
+        /* Now write KVPairs to the file as if it were memory (an array of KVPairs).
          */
-        for (i = 0; i < numElts; ++i) {
-            map[i] = pairs[i];
-        }
+        // TODO: Is this safe?
+        memcpy(map, &pairs[0], numElts * sizeof(KVPair_t));
         
-        /* Don't forget to free the mmapped memory
+        /*free the mmapped memory
          */
         if (munmap(map, filesize) == -1) {
             perror("Error un-mmapping the file");
         }
         
-        /* Un-mmaping doesn't close the file, so we still need to do that.
-         */
         close(fd);
         
         
@@ -111,7 +97,7 @@ public:
             exit(EXIT_FAILURE);
         }
         
-        map = (KVPair<K,V>*) mmap(0, numElts * sizeof(KVPair<K,V>), PROT_READ, MAP_SHARED, fd, 0);
+        map = (KVPair_t*) mmap(0, _numElts * sizeof(KVPair_t), PROT_READ, MAP_SHARED, fd, 0);
         if (map == MAP_FAILED) {
             close(fd);
             perror("Error mmapping the file");
@@ -120,11 +106,11 @@ public:
         
         /* Read the file int-by-int from the mmap
          */
-        for (i = 0; i < numElts; ++i) {
+        for (i = 0; i < _numElts; ++i) {
             printf("I%d: K %d V %d \n", i, map[i].key, map[i].value);
         }
         
-            if (munmap(map, numElts * sizeof(KVPair<K,V>)) == -1) {
+            if (munmap(map, _numElts * sizeof(KVPair_t)) == -1) {
             perror("Error un-mmapping the file");
         }
         close(fd);
@@ -139,6 +125,9 @@ private:
     const char  *_filename;
     int _level;
     vector<K> _fencePointers;
+    
+    
+    
     
 };
 #endif /* diskLevel_h */

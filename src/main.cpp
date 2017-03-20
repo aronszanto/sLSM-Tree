@@ -161,10 +161,10 @@ void diskLevelTest(){
     }
     
     vector<KVPair<int32_t, int32_t>> all = lsmTree.C_0[0]->get_all();
-    int capacity = 200;
+    int capacity = num_inserts * 2;
     int numElts = all.size();
     int level = 1;
-    auto disklevel = DiskLevel<int32_t,int32_t>(capacity, numElts, level, all);
+    auto disklevel = DiskLevel<int32_t,int32_t>(capacity, numElts, level, &all[0]);
     
 //    for (int j = 0; j < lsmTree._eltsPerRun; j++){
 //        auto kv = all[j];

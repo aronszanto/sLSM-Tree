@@ -23,7 +23,7 @@
 #include <algorithm>
 #include "imsort.hpp"
 
-#define PAGESIZE 100
+#define PAGESIZE 4096
 
 using namespace std;
 
@@ -135,6 +135,7 @@ public:
     V lookup(K key){
         KVPair_t k = {key, 0};
         int i = 0;
+        // TODO: MAKE THIS BINARY SEARCH
         while (key >= _fencePointers[i] && i <= _iMaxFP){
             ++i;
         }
@@ -152,16 +153,12 @@ public:
             start = (i - 1) * PAGESIZE;
             end = i * PAGESIZE;
         }
-        //DEBUG PRINT VALUES ON DISK
-//        cout << "values on disk: " << endl;
-//        for (int j = 0; j < _numElts; j++){
-//            cout << map[j].key << " ";
-//            
-//        }
-//        cout << endl;
+        // for no fence pointers, uncomment:
+//        start = 0;
+//        end = _numElts;
+        
         auto ret = binary_search(start, end - start, k).value;
-//        V* ret = (V*) bsearch(&k, &map[start], end - start, sizeof(KVPair_t), compareKVs);
-//        return ret ? *ret : NULL;
+
         return ret;
     }
 

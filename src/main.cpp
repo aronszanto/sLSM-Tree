@@ -69,24 +69,27 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 1000000;
+    const int num_inserts = 10000000;
     const int max_levels = 16;
     const int num_runs = 10;
-    const int total_size = 1000 * num_runs * sizeof(int);
+    const int total_size = 5000 * num_runs * sizeof(int);
     const int run_size = total_size / num_runs;
     SkipList<int32_t, int32_t, max_levels>(INT32_MIN,INT32_MAX);
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(total_size, run_size, 2,.5);
     
     std::vector<int> to_insert;
     for (int i = 0; i < num_inserts; i++) {
-        int insert = distribution(generator);
-        to_insert.push_back(insert);
+//        int insert = distribution(generator);
+        to_insert.push_back(i);
     }
+//    shuffle(to_insert.begin(), to_insert.end(), generator);
+
     std::clock_t    start_insert;
     std::cout << "Starting inserts" << std::endl;
     start_insert = std::clock();
     for (int i = 0; i < num_inserts; i++) {
-        lsmTree.insert_key(i, to_insert[i]);
+        if ( i % 10000 == 0 ) cout << "insert " << i << endl;
+        lsmTree.insert_key(to_insert[i],i);
     }
     
     double total_insert = (std::clock() - start_insert) / (double)(CLOCKS_PER_SEC);
@@ -99,9 +102,11 @@ void insertLookupTest(){
     start_lookup = std::clock();
 
     for (int i = 0 ; i < num_inserts; i++) {
-        int lookup = lsmTree.lookup(i);
-        if (lookup != to_insert[i])
-            cout << "LOOKUP TEST FAILED ON ITERATION " << i << ". Got " << lookup << " but was expecting " << to_insert[i] << ".\n";
+        if ( i % 10000 == 0 ) cout << "lookup " << i << endl;
+
+        int lookup = lsmTree.lookup(to_insert[i]);
+        if (lookup != i)
+            cout << "LOOKUP TEST FAILED ON ITERATION " << i << ". Got " << lookup << " but was expecting " << i << ".\n";
     }
     double total_lookup = (std::clock() - start_lookup) / (double)(CLOCKS_PER_SEC);
 

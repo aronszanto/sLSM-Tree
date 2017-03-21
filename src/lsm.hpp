@@ -17,7 +17,7 @@
 #include <cstdint>
 #include <vector>
 
-const double BF_FP_RATE = .05;
+const double BF_FP_RATE = .0001;
 
 
 template <class K, class V>

@@ -33,7 +33,7 @@ public:
     vector<BloomFilter<K> *> filters;
     DiskLevel<K,V> disk_level;
     
-    LSM<K,V>(size_t initialSize, size_t runSize, double sizeRatio):_sizeRatio(sizeRatio),_runSize(runSize),_initialSize(initialSize), _num_runs(initialSize / runSize), disk_level((runSize / sizeof(KVPair<K, V>)) * (initialSize / runSize) * sizeRatio, 1){
+    LSM<K,V>(size_t initialSize, size_t runSize, double sizeRatio, double merged_frac):_sizeRatio(sizeRatio),_runSize(runSize),_initialSize(initialSize), _num_runs(initialSize / runSize), disk_level((runSize / sizeof(KVPair<K, V>)) * (initialSize / runSize) * sizeRatio, 1), _frac_runs_merged(merged_frac){
         _activeRun = 0;
         _eltsPerRun = _runSize / sizeof(KVPair<K, V>);
         _bfFalsePositiveRate = BF_FP_RATE;
@@ -53,7 +53,7 @@ public:
         if (C_0[_activeRun]->num_elements() >= _eltsPerRun)
             ++_activeRun;
         
-        if (_activeRun > _num_runs){
+        if (_activeRun >= _num_runs){
             
             do_merge();
         }

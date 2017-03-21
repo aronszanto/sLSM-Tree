@@ -75,7 +75,7 @@ void insertLookupTest(){
     const int total_size = num_inserts * sizeof(int);
     const int run_size = total_size / num_runs;
     SkipList<int32_t, int32_t, max_levels>(INT32_MIN,INT32_MAX);
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(total_size, run_size, 2);
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(total_size, run_size, 2,.5);
     
     std::vector<int> to_insert;
     for (int i = 0; i < num_inserts; i++) {
@@ -115,7 +115,7 @@ void runInOrderTest() {
     const int total_size = num_inserts * (2 * sizeof(int));
     const int run_size = total_size / num_runs;
     SkipList<int32_t, int32_t, max_levels>(INT32_MIN,INT32_MAX);
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(total_size, run_size, 2);
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(total_size, run_size, 2, .5);
     
     std::vector<int> to_insert;
     for (int i = 0; i < num_inserts; i++) {
@@ -147,7 +147,7 @@ void diskLevelTest(){
     const int total_size = num_inserts * (2 * sizeof(int));
     const int run_size = total_size / num_runs;
     SkipList<int32_t, int32_t, max_levels>(INT32_MIN,INT32_MAX);
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(total_size, run_size, 2);
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(total_size, run_size, 2,1);
     
     std::vector<int> to_insert;
     for (int i = 0; i < num_inserts; i++) {
@@ -189,6 +189,26 @@ int main(){
 //    runInOrderTest();
 //    insertLookupTest();
 //    diskLevelTest();
+    
+    const int num_inserts = 100;
+    const int max_levels = 16;
+    const int num_runs = 1;
+    const double merge_frac = 1.0;
+    const int total_size = num_inserts / 2 * 2*  sizeof(int);
+    const int run_size = total_size / num_runs;
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(total_size, run_size, 2, merge_frac);
+    
+    std::vector<int> to_insert;
+    for (int i = 0; i < num_inserts; i++) {
+        to_insert.push_back(i);
+    }
+    std::clock_t    start_insert;
+    std::cout << "Starting inserts" << std::endl;
+    start_insert = std::clock();
+    for (int i = 0; i < num_inserts; i++) {
+        lsmTree.insert_key(to_insert[i], i);
+    }
+
 
     
     

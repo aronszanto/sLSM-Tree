@@ -23,7 +23,7 @@
 #include <algorithm>
 #include "imsort.hpp"
 
-#define PAGESIZE 4096
+#define PAGESIZE 2
 
 using namespace std;
 

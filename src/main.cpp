@@ -69,9 +69,9 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 500000;
+    const int num_inserts = 10000;
     const int max_levels = 16;
-    const int num_runs = 100;
+    const int num_runs = 10;
     const int total_size = num_inserts * sizeof(int);
     const int run_size = total_size / num_runs;
     SkipList<int32_t, int32_t, max_levels>(INT32_MIN,INT32_MAX);
@@ -187,28 +187,10 @@ void wmerge(int* xs, int i, int m, int j, int n, int w) {
 int main(){
 
 //    runInOrderTest();
-//    insertLookupTest();
+    insertLookupTest();
 //    diskLevelTest();
     
-    const int num_inserts = 100;
-    const int max_levels = 16;
-    const int num_runs = 10;
-    const double merge_frac = .5;
-    const int total_size = num_inserts / 2 * 2 *  sizeof(int);
-    const int run_size = total_size / num_runs;
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(total_size, run_size, 2, merge_frac);
-    
-    std::vector<int> to_insert;
-    for (int i = 0; i < num_inserts; i++) {
-        to_insert.push_back(i);
-    }
-    std::clock_t    start_insert;
-    std::cout << "Starting inserts" << std::endl;
-    start_insert = std::clock();
-    for (int i = 0; i < num_inserts; i++) {
-        lsmTree.insert_key(to_insert[i], i);
-    }
-
+   
 
     
     

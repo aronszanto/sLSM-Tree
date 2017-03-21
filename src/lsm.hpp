@@ -75,7 +75,15 @@ public:
             if (lookupRes)
                 return lookupRes;
         }
-        return NULL;
+        // it's not in C_0 so let's look at disk.
+        
+        V* looked = disk_level.lookup(key);
+        if (looked){
+            return *looked;
+        }
+        else{
+            return NULL;
+        }
     }
     
     

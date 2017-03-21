@@ -23,7 +23,7 @@
 #include <algorithm>
 #include "imsort.hpp"
 
-#define PAGESIZE 2
+#define PAGESIZE 100
 
 using namespace std;
 
@@ -31,9 +31,19 @@ template <class K, class V>
 class DiskLevel {
 public:
     typedef KVPair<K,V> KVPair_t;
+    
+    static int compareKVs (const void * a, const void * b)
+    {
+        if ( *(KVPair<K,V>*)a <  *(KVPair<K,V>*)b ) return -1;
+        if ( *(KVPair<K,V>*)a == *(KVPair<K,V>*)b ) return 0;
+        if ( *(KVPair<K,V>*)a >  *(KVPair<K,V>*)b ) return 1;
+        return 10;
+    }
+    
+    
     KVPair_t *map;
     int fd;
-
+    
     DiskLevel<K,V> (unsigned long long capacity, int level):_capacity(capacity),_numElts(0),_level(level), _iMaxFP(0) {
         
         _filename = ("C_" + to_string(level) + ".txt").c_str();
@@ -99,9 +109,35 @@ public:
         }
         
         
-        
-        
     }
+    
+    
+    V* lookup(K key){
+        KVPair_t k = {key, 0};
+        int i = 0;
+        
+        for (; i <= _iMaxFP; i++){
+            if (key < _fencePointers[i])
+                break;
+        }
+        int start;
+        int end;
+        if (i == 0){
+            start = 0;
+            end = PAGESIZE;
+        }
+        else if (i == _iMaxFP){
+            start = i * PAGESIZE;
+            end = _numElts;
+        }
+        else {
+            start = (i - 1) * PAGESIZE;
+            end = i * PAGESIZE;
+        }
+        
+        return (V*) bsearch(&k, &map[start], end - start, sizeof(KVPair_t), compareKVs);
+    }
+
     
 private:
     unsigned long long _capacity;

@@ -20,6 +20,8 @@ struct KVPair {
     K key;
     V value;
     
+    
+    
     bool operator==(KVPair kv) const {
         return (kv.key == key && kv.value == value);
     }
@@ -31,7 +33,11 @@ struct KVPair {
     bool operator>(KVPair kv) const{
         return key > kv.key;
     }
+    
+    
 };
+
+
 
     template <class K, class V>
     class Run {

@@ -35,7 +35,7 @@ public:
     
     LSM<K,V>(size_t initialSize, size_t runSize, double sizeRatio, double merged_frac):_sizeRatio(sizeRatio),_runSize(runSize),_initialSize(initialSize), _num_runs(initialSize / runSize), disk_level((runSize / sizeof(KVPair<K, V>)) * (initialSize / runSize) * sizeRatio, 1), _frac_runs_merged(merged_frac){
         _activeRun = 0;
-        _eltsPerRun = _runSize / sizeof(KVPair<K, V>);
+        _eltsPerRun = _runSize / (unsigned long) sizeof(KVPair<K, V>);
         _bfFalsePositiveRate = BF_FP_RATE;
         
         for (int i = 0; i < _num_runs; i++){
@@ -49,16 +49,18 @@ public:
     }
     
     void insert_key(K key, V value) {
-        
-        if (C_0[_activeRun]->num_elements() >= _eltsPerRun)
+//        cout << "inserting key " << key << endl;
+        if (C_0[_activeRun]->num_elements() >= _eltsPerRun){
+//            cout << "run " << _activeRun << " full, moving to next" << endl;
             ++_activeRun;
+        }
         
         if (_activeRun >= _num_runs){
-            
+//            cout << "need to merge" << endl;
             do_merge();
         }
         
-        
+//        cout << "inserting key " << key << " to run " << _activeRun << endl;
         C_0[_activeRun]->insert_key(key,value);
         filters[_activeRun]->add(&key, sizeof(K));
     }
@@ -77,9 +79,9 @@ public:
         }
         // it's not in C_0 so let's look at disk.
         
-        V* looked = disk_level.lookup(key);
+        V looked = disk_level.lookup(key);
         if (looked){
-            return *looked;
+            return looked;
         }
         else{
             return NULL;
@@ -100,23 +102,32 @@ public:
     size_t _runSize;
     size_t _initialSize;
     unsigned int _activeRun;
-    unsigned int _eltsPerRun;
+    unsigned long _eltsPerRun;
     double _bfFalsePositiveRate;
     unsigned int _num_runs;
     double _frac_runs_merged;
     
     void do_merge(){
         int num_to_merge = _frac_runs_merged * _num_runs;
+        if (num_to_merge == 0)
+            return;
+//        cout << "going to merge " << num_to_merge << " runs" << endl;
         vector<KVPair<K, V>> to_merge = vector<KVPair<K,V>>();
         to_merge.reserve(_eltsPerRun * num_to_merge);
         for (int i = 0; i < num_to_merge; i++){
+//            cout << "grabbing values in and deleting run " << i << endl;
             auto all = C_0[i]->get_all();
+//            cout << "values in run " << i << endl;
+            
             to_merge.insert(to_merge.begin(), all.begin(), all.end());
             delete C_0[i];
         }
         sort(to_merge.begin(), to_merge.end());
+//        cout << "merging to disk" << endl;
         disk_level.merge(&to_merge[0], to_merge.size());
         C_0.erase(C_0.begin(), C_0.begin() + num_to_merge);
+        filters.erase(filters.begin(), filters.begin() + num_to_merge);
+
         _activeRun -= num_to_merge;
         for (int i = _activeRun; i < _num_runs; i++){
             RunType * run = new RunType(INT32_MIN,INT32_MAX);

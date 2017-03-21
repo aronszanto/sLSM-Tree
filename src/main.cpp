@@ -71,7 +71,7 @@ void insertLookupTest(){
     
     const int num_inserts = 10000;
     const int max_levels = 16;
-    const int num_runs = 10;
+    const int num_runs = 4;
     const int total_size = num_inserts * sizeof(int);
     const int run_size = total_size / num_runs;
     SkipList<int32_t, int32_t, max_levels>(INT32_MIN,INT32_MAX);
@@ -189,6 +189,8 @@ int main(){
 //    runInOrderTest();
     insertLookupTest();
 //    diskLevelTest();
+
+
     
    
 

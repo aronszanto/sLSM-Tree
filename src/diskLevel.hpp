@@ -102,23 +102,41 @@ public:
         
         // redo fence pointers
         _fencePointers.resize(0);
-        _iMaxFP = 0;
+        _iMaxFP = -1; // TODO IS THIS SAFE?
         for (int j = 0; j * PAGESIZE < _numElts; j++) {
             _fencePointers.push_back(map[j * PAGESIZE].key);
             _iMaxFP++;
         }
-        
+//        cout << "values on disk: " << endl;
+//        for (int j = 0; j < _numElts; j++){
+//            cout << map[j].key << " ";
+//            
+//        }
+//        cout << endl;
         
     }
     
+    KVPair_t binary_search (const int offset, int n, KVPair_t key) {
+
+
+        int min = offset, max = offset + n;
+        while (min < max) {
+            int middle = (min + max) >> 1;
+            if (key > map [middle])
+                min = middle + 1;
+            else if (key < map[middle])
+                max = middle;
+            else
+                return map[middle];
     
-    V* lookup(K key){
+        }
+        return (KVPair_t) {0,0};
+    }
+    V lookup(K key){
         KVPair_t k = {key, 0};
         int i = 0;
-        
-        for (; i <= _iMaxFP; i++){
-            if (key < _fencePointers[i])
-                break;
+        while (key >= _fencePointers[i] && i <= _iMaxFP){
+            ++i;
         }
         int start;
         int end;
@@ -126,16 +144,25 @@ public:
             start = 0;
             end = PAGESIZE;
         }
-        else if (i == _iMaxFP){
-            start = i * PAGESIZE;
+        else if (i >= _iMaxFP){
+            start = _iMaxFP * PAGESIZE;
             end = _numElts;
         }
         else {
             start = (i - 1) * PAGESIZE;
             end = i * PAGESIZE;
         }
-        
-        return (V*) bsearch(&k, &map[start], end - start, sizeof(KVPair_t), compareKVs);
+        //DEBUG PRINT VALUES ON DISK
+//        cout << "values on disk: " << endl;
+//        for (int j = 0; j < _numElts; j++){
+//            cout << map[j].key << " ";
+//            
+//        }
+//        cout << endl;
+        auto ret = binary_search(start, end - start, k).value;
+//        V* ret = (V*) bsearch(&k, &map[start], end - start, sizeof(KVPair_t), compareKVs);
+//        return ret ? *ret : NULL;
+        return ret;
     }
 
     

@@ -170,6 +170,7 @@ public:
         while ( node != p_listTail){
             KVPair<K,V> kv = {node->key, node->value};
             vec.push_back(kv);
+            // TODO: optimize by reserving space before hand
             node = node->_forward[1];
         }
         return vec;

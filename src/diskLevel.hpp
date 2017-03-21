@@ -34,7 +34,7 @@ public:
     KVPair_t *map;
     int fd;
 
-    DiskLevel<K,V> (unsigned long long capacity, unsigned long long numElts, int level, KVPair_t *pairs):_capacity(capacity),_numElts(numElts),_level(level), _iMaxFP(0) {
+    DiskLevel<K,V> (unsigned long long capacity, int level):_capacity(capacity),_numElts(0),_level(level), _iMaxFP(0) {
         
         _filename = ("C_" + to_string(level) + ".txt").c_str();
         
@@ -72,17 +72,6 @@ public:
             perror("Error mmapping the file");
             exit(EXIT_FAILURE);
         }
-        
-        /* Now write KVPairs to the file as if it were memory (an array of KVPairs).
-         */
-        // TODO: Is this safe?
-        memcpy(map, &pairs[0], numElts * sizeof(KVPair_t));
-        
-        _fencePointers.resize(0);
-        for (int j = 0; j * PAGESIZE < _numElts; j++) {
-            _fencePointers.push_back(pairs[j * PAGESIZE].key);
-            _iMaxFP++;
-        }
 
         
         
@@ -93,13 +82,21 @@ public:
     
     void merge(KVPair_t *run, unsigned long long len) {
         while (len + _numElts > _capacity){
-            // FOR NOW: JUST INCREASE CAPACITY BY DOUBLING
+            // TODO: FOR NOW: JUST INCREASE CAPACITY BY DOUBLING
             doubleSize();
         }
 
-        memcpy(map[_numElts], run, len);
+        memcpy(map + _numElts, run, len * sizeof(KVPair_t));
         inplace_merge(map, map + _numElts, map + _numElts + len);
         _numElts += len;
+        
+        // redo fence pointers
+        _fencePointers.resize(0);
+        _iMaxFP = 0;
+        for (int j = 0; j * PAGESIZE < _numElts; j++) {
+            _fencePointers.push_back(map[j * PAGESIZE].key);
+            _iMaxFP++;
+        }
         
         
         

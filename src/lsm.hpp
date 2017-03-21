@@ -31,14 +31,14 @@ public:
     vector<Run<K,V> *> C_0;
     
     vector<BloomFilter<K> *> filters;
+    DiskLevel<K,V> disk_level;
     
-    LSM<K,V>(size_t initialSize, size_t runSize, double sizeRatio):_sizeRatio(sizeRatio),_runSize(runSize),_initialSize(initialSize) {
+    LSM<K,V>(size_t initialSize, size_t runSize, double sizeRatio):_sizeRatio(sizeRatio),_runSize(runSize),_initialSize(initialSize), _num_runs(initialSize / runSize), disk_level((runSize / sizeof(KVPair<K, V>)) * (initialSize / runSize) * sizeRatio, 1){
         _activeRun = 0;
         _eltsPerRun = _runSize / sizeof(KVPair<K, V>);
         _bfFalsePositiveRate = BF_FP_RATE;
         
-        unsigned long num_runs = initialSize / runSize;
-        for (int i = 0; i < num_runs; i++){
+        for (int i = 0; i < _num_runs; i++){
             RunType * run = new RunType(INT32_MIN,INT32_MAX);
             run->set_size(runSize);
             C_0.push_back(run);
@@ -46,7 +46,6 @@ public:
             BloomFilter<K> * bf = new BloomFilter<K>(_eltsPerRun, _bfFalsePositiveRate);
             filters.push_back(bf);
         }
-        
     }
     
     void insert_key(K key, V value) {
@@ -54,9 +53,12 @@ public:
         if (C_0[_activeRun]->num_elements() >= _eltsPerRun)
             ++_activeRun;
         
-        // TODO: if (C_0_full) then merge
-//        cout << "adding key " << key<< " to run and filter " << _activeRun << endl;
-
+        if (_activeRun > _num_runs){
+            
+            do_merge();
+        }
+        
+        
         C_0[_activeRun]->insert_key(key,value);
         filters[_activeRun]->add(&key, sizeof(K));
     }
@@ -89,9 +91,35 @@ public:
     double _sizeRatio;
     size_t _runSize;
     size_t _initialSize;
-    unsigned _activeRun;
-    unsigned _eltsPerRun;
+    unsigned int _activeRun;
+    unsigned int _eltsPerRun;
     double _bfFalsePositiveRate;
+    unsigned int _num_runs;
+    double _frac_runs_merged;
+    
+    void do_merge(){
+        int num_to_merge = _frac_runs_merged * _num_runs;
+        vector<KVPair<K, V>> to_merge = vector<KVPair<K,V>>();
+        to_merge.reserve(_eltsPerRun * num_to_merge);
+        for (int i = 0; i < num_to_merge; i++){
+            auto all = C_0[i]->get_all();
+            to_merge.insert(to_merge.begin(), all.begin(), all.end());
+            delete C_0[i];
+        }
+        disk_level.merge(&to_merge[0], to_merge.size());
+        C_0.erase(C_0.begin(), C_0.begin() + num_to_merge);
+        _activeRun -= num_to_merge;
+        for (int i = _activeRun; i < _num_runs; i++){
+            RunType * run = new RunType(INT32_MIN,INT32_MAX);
+            run->set_size(_runSize);
+            C_0.push_back(run);
+            
+            BloomFilter<K> * bf = new BloomFilter<K>(_eltsPerRun, _bfFalsePositiveRate);
+            filters.push_back(bf);
+        }
+        
+
+    }
     
 };
 

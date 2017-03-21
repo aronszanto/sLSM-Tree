@@ -20,6 +20,8 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <cassert>
+#include <algorithm>
+#include "imsort.hpp"
 
 #define PAGESIZE 4096
 
@@ -29,17 +31,16 @@ template <class K, class V>
 class DiskLevel {
 public:
     typedef KVPair<K,V> KVPair_t;
-    
+    KVPair_t *map;
+    int fd;
+
     DiskLevel<K,V> (unsigned long long capacity, unsigned long long numElts, int level, KVPair_t *pairs):_capacity(capacity),_numElts(numElts),_level(level), _iMaxFP(0) {
         
         _filename = ("C_" + to_string(level) + ".txt").c_str();
         
         size_t filesize = capacity * sizeof(KVPair_t);
 
-        int i;
-        int fd;
         long result;
-        KVPair<K, V> *map;  /* mmapped array of KVPairs */
         
         fd = open(_filename, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
         if (fd == -1) {
@@ -64,8 +65,7 @@ public:
             exit(EXIT_FAILURE);
         }
         
-        /* Now the file is ready to be mmapped.
-         */
+        
         map = (KVPair<K, V>*) mmap(0, filesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
         if (map == MAP_FAILED) {
             close(fd);
@@ -78,14 +78,6 @@ public:
         // TODO: Is this safe?
         memcpy(map, &pairs[0], numElts * sizeof(KVPair_t));
         
-        /*free the mmapped memory
-         */
-        if (munmap(map, filesize) == -1) {
-            perror("Error un-mmapping the file");
-        }
-        
-        close(fd);
-        
         _fencePointers.resize(0);
         for (int j = 0; j * PAGESIZE < _numElts; j++) {
             _fencePointers.push_back(pairs[j * PAGESIZE].key);
@@ -94,46 +86,26 @@ public:
 
         
         
-        
+    }
+    ~DiskLevel<K,V>(){
+        doUnmap();
+    }
     
-    }
-    void updateFencePointers(){
-        _fencePointers.resize(_numElts / PAGESIZE);
-        
-        size_t filesize = _numElts * sizeof(KVPair_t);
-        
-        int i;
-        int fd;
-        long result;
-        KVPair<K, V> *map;  /* mmapped array of KVPairs */
+    void merge(KVPair_t *run, unsigned long long len) {
+        while (len + _numElts > _capacity){
+            // FOR NOW: JUST INCREASE CAPACITY BY DOUBLING
+            doubleSize();
+        }
 
+        memcpy(map[_numElts], run, len);
+        inplace_merge(map, map + _numElts, map + _numElts + len);
+        _numElts += len;
         
-        fd = open(_filename, O_RDONLY);
-        if (fd == -1) {
-            perror("Error opening file for reading");
-            exit(EXIT_FAILURE);
-        }
         
-        map = (KVPair_t*) mmap(0, _numElts * sizeof(KVPair_t), PROT_READ, MAP_SHARED, fd, 0);
-        if (map == MAP_FAILED) {
-            close(fd);
-            perror("Error mmapping the file");
-            exit(EXIT_FAILURE);
-        }
         
-        /* Read the file int-by-int from the mmap
-         */
-        for (i = 0; i < _numElts; i++) {
-            _fencePointers[i] = map[i * PAGESIZE].key;
-        }
-        
-        if (munmap(map, _numElts * sizeof(KVPair_t)) == -1) {
-            perror("Error un-mmapping the file");
-        }
-        close(fd);
-
         
     }
+    
 private:
     unsigned long long _capacity;
     unsigned long long _numElts;
@@ -141,6 +113,64 @@ private:
     int _level;
     vector<K> _fencePointers;
     unsigned _iMaxFP;
+    
+    void doMap(){
+        
+        size_t filesize = _capacity * sizeof(KVPair_t);
+        
+        fd = open(_filename, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
+        if (fd == -1) {
+            perror("Error opening file for writing");
+            exit(EXIT_FAILURE);
+        }
+        
+    
+        map = (KVPair<K, V>*) mmap(0, filesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        if (map == MAP_FAILED) {
+            close(fd);
+            perror("Error mmapping the file");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    void doUnmap(){
+        size_t filesize = _capacity * sizeof(KVPair_t);
+
+        if (munmap(map, filesize) == -1) {
+            perror("Error un-mmapping the file");
+        }
+        
+        close(fd);
+        fd = -5;
+    }
+    
+    void doubleSize(){
+        unsigned long long new_capacity = _capacity * 2;
+        
+        size_t new_filesize = new_capacity * sizeof(KVPair_t);
+        int result = lseek(fd, new_filesize - 1, SEEK_SET);
+        if (result == -1) {
+            close(fd);
+            perror("Error calling lseek() to 'stretch' the file");
+            exit(EXIT_FAILURE);
+        }
+        
+        result = write(fd, "", 1);
+        if (result != 1) {
+            close(fd);
+            perror("Error writing last byte of the file");
+            exit(EXIT_FAILURE);
+        }
+        
+        map = (KVPair<K, V>*) mmap(0, new_filesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        if (map == MAP_FAILED) {
+            close(fd);
+            perror("Error mmapping the file");
+            exit(EXIT_FAILURE);
+        }
+        
+        _capacity = new_capacity;
+    }
     
     
     

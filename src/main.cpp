@@ -12,7 +12,7 @@
 #include <iostream>
 #include <math.h>
 #include <random>
-
+#include <algorithm>
 #include "skipList.hpp"
 #include "bloom.hpp"
 #include "lsm.hpp"
@@ -172,11 +172,26 @@ void diskLevelTest(){
 //    }
 
 }
+void swap(int* xs, int i, int j) {
+    int tmp = xs[i]; xs[i] = xs[j]; xs[j] = tmp;
+}
+void wmerge(int* xs, int i, int m, int j, int n, int w) {
+    while (i < m && j < n)
+        swap(xs, w++, xs[i] < xs[j] ? i++ : j++);
+    while (i < m)
+        swap(xs, w++, i++);
+    while (j < n)
+        swap(xs, w++, j++);
+}
+
 int main(){
 
 //    runInOrderTest();
 //    insertLookupTest();
-    diskLevelTest();
+//    diskLevelTest();
+
+    
+    
 
 
     return 0;

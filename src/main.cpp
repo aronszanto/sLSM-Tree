@@ -192,9 +192,9 @@ int main(){
     
     const int num_inserts = 100;
     const int max_levels = 16;
-    const int num_runs = 1;
-    const double merge_frac = 1.0;
-    const int total_size = num_inserts / 2 * 2*  sizeof(int);
+    const int num_runs = 10;
+    const double merge_frac = .5;
+    const int total_size = num_inserts / 2 * 2 *  sizeof(int);
     const int run_size = total_size / num_runs;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(total_size, run_size, 2, merge_frac);
     

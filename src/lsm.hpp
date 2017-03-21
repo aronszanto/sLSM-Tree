@@ -106,6 +106,7 @@ public:
             to_merge.insert(to_merge.begin(), all.begin(), all.end());
             delete C_0[i];
         }
+        sort(to_merge.begin(), to_merge.end());
         disk_level.merge(&to_merge[0], to_merge.size());
         C_0.erase(C_0.begin(), C_0.begin() + num_to_merge);
         _activeRun -= num_to_merge;

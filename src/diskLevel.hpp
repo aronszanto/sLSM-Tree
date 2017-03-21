@@ -144,7 +144,7 @@ public:
             start = 0;
             end = PAGESIZE;
         }
-        else if (i >= _iMaxFP){
+        else if (i > _iMaxFP){
             start = _iMaxFP * PAGESIZE;
             end = _numElts;
         }

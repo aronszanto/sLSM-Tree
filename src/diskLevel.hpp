@@ -135,6 +135,9 @@ public:
     V lookup(K key){
         KVPair_t k = {key, 0};
         int i = 0;
+        if (_iMaxFP == 0){
+            return binary_search(0, _numElts, k).value;
+        }
         // TODO: MAKE THIS BINARY SEARCH
         while (i <= _iMaxFP && key >= _fencePointers[i]){
             ++i;

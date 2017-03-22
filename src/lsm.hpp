@@ -69,8 +69,8 @@ public:
 //        cout << "looking for key " << key << endl;
         for (int i = _activeRun; i >= 0; --i){
 //            cout << "... in run/filter " << i << endl;
-            if (!filters[i]->mayContain(&key, sizeof(K)))
-                continue;
+//            if (!filters[i]->mayContain(&key, sizeof(K)))
+//                continue;
             
             V lookupRes = C_0[i]->lookup(key);
             if (lookupRes)

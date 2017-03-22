@@ -174,13 +174,70 @@ void diskLevelTest(){
     auto disklevel = DiskLevel<int32_t,int32_t>(capacity, 4096, level);
     
 }
-
+void customTest(const int num_inserts, const int num_runs, const int buffer_capacity,  const double bf_fp, const double merge_frac, const int pageSize){
+    std::random_device                  rand_dev;
+    std::mt19937                        generator(rand_dev());
+    std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
+    
+    
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,merge_frac, bf_fp, pageSize);
+    
+    std::vector<int> to_insert;
+    for (int i = 0; i < num_inserts; i++) {
+        //        int insert = distribution(generator);
+        to_insert.push_back(i);
+    }
+    shuffle(to_insert.begin(), to_insert.end(), generator);
+    
+    std::clock_t    start_insert;
+//    std::cout << "Starting inserts" << std::endl;
+    start_insert = std::clock();
+    for (int i = 0; i < num_inserts; i++) {
+//        if ( i % 10000 == 0 ) cout << "insert " << i << endl;
+        lsmTree.insert_key(to_insert[i],i);
+    }
+    
+    double total_insert = (std::clock() - start_insert) / (double)(CLOCKS_PER_SEC);
+    
+    
+    std::clock_t    start_lookup;
+    start_lookup = std::clock();
+    
+    for (int i = 0 ; i < num_inserts; i++) {
+        if ( i % 10000 == 0 ) cout << "lookup " << i << endl;
+        int lookup = lsmTree.lookup(to_insert[i]);
+    }
+    double total_lookup = (std::clock() - start_lookup) / (double)(CLOCKS_PER_SEC);
+    
+    double ipersec = num_inserts / total_insert;
+    double lpersec = num_inserts / total_lookup;
+    
+    cout << num_inserts << "," << num_runs << "," << buffer_capacity << "," << bf_fp << "," << merge_frac << "," << pageSize << "," << ipersec << "," << lpersec <<  "," << total_insert << "," << total_lookup << endl;
+}
+void cartesianTest(){
+    vector<int> numins = {100000, 1000000};
+    vector<int> numruns = {25, 100, 500, 1000};
+    vector<int> buffercaps = {10000, 100000};
+    vector<double> bf_fp = {0.001, 0.1};
+    vector<double> merge_frac = {.2, .5, .8};
+    vector<int> pss = {100, 1000};
+    
+    for (int i = 0; i < numins.size(); i++)
+        for(int n = 0; n < numruns.size(); n++)
+            for(int b = 0; b < buffercaps.size();b++)
+                for(int bf = 0; bf < bf_fp.size(); bf++)
+                    for (int m = 0; m < merge_frac.size(); m++)
+                        for (int p = 0; p < pss.size(); p++)
+                            customTest(numins[i], numruns[n], buffercaps[b], bf_fp[bf], merge_frac[m], pss[p]);
+}
 int main(){
 
 //    runInOrderTest();
-    insertLookupTest();
+//    insertLookupTest();
 //    diskLevelTest();
-
+    // GOOD FOR BLOOM!
+//    customTest(1000000, 100, 100000, .0001, .8, 1000);
+    
 
     
    

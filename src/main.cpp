@@ -230,14 +230,63 @@ void cartesianTest(){
                         for (int p = 0; p < pss.size(); p++)
                             customTest(numins[i], numruns[n], buffercaps[b], bf_fp[bf], merge_frac[m], pss[p]);
 }
+void bfPerfTest(){
+    vector<double> numruns = {.00001, .000001};
+    for (int i = 0; i < numruns.size(); i++)
+        customTest(1000000,	100, 100000, numruns[i],	0.8,1000);
+}
+void fencePointerTest(){
+
+    const int num_inserts = 200000000;
+    const int num_lookups = 1000000;
+    const int blocks = 4;
+    const int pageSize = 10000;
+    std::random_device                  rand_dev;
+    std::mt19937                        generator(rand_dev());
+    std::uniform_int_distribution<int>  distribution(0, (int) (num_inserts * 1.2));
+
+    std::vector<KVPair<int32_t, int32_t>> to_insert;
+    auto dl = DiskLevel<int32_t, int32_t>(num_inserts + 1000, pageSize, 2);
+
+    cout << "reserving" << endl;
+    to_insert.reserve(num_inserts);
+    cout << "pushing" << endl;
+    for (int b = 0; b < blocks; b++){
+        for (int i = b * (num_inserts / blocks); i < (b + 1) * num_inserts / blocks; i++) {
+            if (i % 100000 == 0) cout << "insert " << i << endl;
+
+            to_insert.push_back((KVPair<int32_t, int32_t>) {i, i});
+        }
+        dl.merge(&to_insert[0], num_inserts / blocks);
+        to_insert.resize(0);
+        
+    }
+    
+    auto to_lookup = vector<int>();
+    to_lookup.reserve(num_lookups);
+    for (int i = 0; i< num_lookups; i++){
+        to_lookup.push_back(distribution(generator));
+    }
+    cout << "lookups" << endl;
+    std::clock_t    start_lookup;
+    start_lookup = std::clock();
+    
+    for (int i = 0 ; i < num_lookups; i++) {
+        if (i % 10000 == 0) cout << "lookup " << i << endl;
+        int lookup = dl.lookup(to_insert[i].key);
+    }
+    double total_lookup = (std::clock() - start_lookup) / (double)(CLOCKS_PER_SEC);
+    
+    double lpersec = num_lookups / total_lookup;
+    cout << num_inserts << "," << pageSize << "," << lpersec << "," << total_lookup << endl;
+
+    
+    
+}
 int main(){
 
-//    runInOrderTest();
-//    insertLookupTest();
-//    diskLevelTest();
-    // GOOD FOR BLOOM!
-//    customTest(1000000, 100, 100000, .0001, .8, 1000);
     
+    fencePointerTest();
 
     
    

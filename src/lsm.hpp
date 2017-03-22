@@ -17,7 +17,6 @@
 #include <cstdint>
 #include <vector>
 
-const double BF_FP_RATE = .0001;
 
 
 template <class K, class V>
@@ -33,14 +32,14 @@ public:
     vector<BloomFilter<K> *> filters;
     DiskLevel<K,V> disk_level;
     
-    LSM<K,V>(size_t initialSize, size_t runSize, double sizeRatio, double merged_frac):_sizeRatio(sizeRatio),_runSize(runSize),_initialSize(initialSize), _num_runs(initialSize / runSize), disk_level((runSize / sizeof(KVPair<K, V>)) * (initialSize / runSize) * sizeRatio, 1), _frac_runs_merged(merged_frac){
+    LSM<K,V>(unsigned long initialSize, unsigned int numRuns, double sizeRatio, double merged_frac, double bf_fp, unsigned int pageSize):_sizeRatio(sizeRatio),_initialSize(initialSize), _num_runs(numRuns), disk_level(initialSize * sizeRatio, pageSize, 1), _frac_runs_merged(merged_frac){
         _activeRun = 0;
-        _eltsPerRun = _runSize / (unsigned long) sizeof(KVPair<K, V>);
-        _bfFalsePositiveRate = BF_FP_RATE;
+        _eltsPerRun = initialSize / numRuns;
+        _bfFalsePositiveRate = bf_fp;
         
         for (int i = 0; i < _num_runs; i++){
             RunType * run = new RunType(INT32_MIN,INT32_MAX);
-            run->set_size(runSize);
+            run->set_size(_eltsPerRun);
             C_0.push_back(run);
             
             BloomFilter<K> * bf = new BloomFilter<K>(_eltsPerRun, _bfFalsePositiveRate);
@@ -99,8 +98,7 @@ public:
     // how do you do disk stuff?
 //private: // TODO MAKE PRIVATE
     double _sizeRatio;
-    size_t _runSize;
-    size_t _initialSize;
+    unsigned long _initialSize;
     unsigned int _activeRun;
     unsigned long _eltsPerRun;
     double _bfFalsePositiveRate;
@@ -131,7 +129,7 @@ public:
         _activeRun -= num_to_merge;
         for (int i = _activeRun; i < _num_runs; i++){
             RunType * run = new RunType(INT32_MIN,INT32_MAX);
-            run->set_size(_runSize);
+            run->set_size(_eltsPerRun);
             C_0.push_back(run);
             
             BloomFilter<K> * bf = new BloomFilter<K>(_eltsPerRun, _bfFalsePositiveRate);

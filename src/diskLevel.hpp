@@ -23,7 +23,6 @@
 #include <algorithm>
 #include "imsort.hpp"
 
-#define PAGESIZE 4096
 
 using namespace std;
 
@@ -43,8 +42,9 @@ public:
     
     KVPair_t *map;
     int fd;
+    unsigned int pageSize;
     
-    DiskLevel<K,V> (unsigned long long capacity, int level):_capacity(capacity),_numElts(0),_level(level), _iMaxFP(0) {
+    DiskLevel<K,V> (unsigned long long capacity, unsigned int pageSize, int level):_capacity(capacity),_numElts(0),_level(level), _iMaxFP(0), pageSize(pageSize) {
         
         _filename = ("C_" + to_string(level) + ".txt").c_str();
         
@@ -103,8 +103,8 @@ public:
         // redo fence pointers
         _fencePointers.resize(0);
         _iMaxFP = -1; // TODO IS THIS SAFE?
-        for (int j = 0; j * PAGESIZE < _numElts; j++) {
-            _fencePointers.push_back(map[j * PAGESIZE].key);
+        for (int j = 0; j * pageSize < _numElts; j++) {
+            _fencePointers.push_back(map[j * pageSize].key);
             _iMaxFP++;
         }
 //        cout << "values on disk: " << endl;
@@ -136,22 +136,22 @@ public:
         KVPair_t k = {key, 0};
         int i = 0;
         // TODO: MAKE THIS BINARY SEARCH
-        while (key >= _fencePointers[i] && i <= _iMaxFP){
+        while (i <= _iMaxFP && key >= _fencePointers[i]){
             ++i;
         }
         int start;
         int end;
         if (i == 0){
             start = 0;
-            end = PAGESIZE;
+            end = pageSize;
         }
         else if (i > _iMaxFP){
-            start = _iMaxFP * PAGESIZE;
+            start = _iMaxFP * pageSize;
             end = _numElts;
         }
         else {
-            start = (i - 1) * PAGESIZE;
-            end = i * PAGESIZE;
+            start = (i - 1) * pageSize;
+            end = i * pageSize;
         }
         // for no fence pointers, uncomment:
 //        start = 0;

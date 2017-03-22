@@ -191,11 +191,11 @@ public:
         return _n;
     }
     
-    void set_size(size_t size){
+    void set_size(unsigned long size){
         _maxSize = size;
     }
     
-    size_t get_size(){
+    size_t get_size_bytes(){
         return _n * (sizeof(K) + sizeof(V));
     }
     

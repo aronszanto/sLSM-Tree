@@ -69,13 +69,13 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 10000000;
+    const int num_inserts = 1000000;
     const int max_levels = 16;
     const int num_runs = 10;
-    const int total_size = 5000 * num_runs * sizeof(int);
-    const int run_size = total_size / num_runs;
-    SkipList<int32_t, int32_t, max_levels>(INT32_MIN,INT32_MAX);
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(total_size, run_size, 2,.5);
+    const int buffer_capacity = 5000 * num_runs;
+    const double bf_fp = .01;
+    const int pageSize = 2048;
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,.5, bf_fp, pageSize);
     
     std::vector<int> to_insert;
     for (int i = 0; i < num_inserts; i++) {
@@ -114,17 +114,18 @@ void insertLookupTest(){
     std::cout << "Lookups per second: " << (int) num_inserts / total_lookup << " s" << std::endl;
 }
 void runInOrderTest() {
-    const int num_inserts = 100;
+    const int num_inserts = 1000000;
     const int max_levels = 16;
-    const int num_runs = 10;
-    const int total_size = num_inserts * (2 * sizeof(int));
-    const int run_size = total_size / num_runs;
-    SkipList<int32_t, int32_t, max_levels>(INT32_MIN,INT32_MAX);
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(total_size, run_size, 2, .5);
+    const int num_runs = 16;
+    const int buffer_capacity = 1000000;
+    const double bf_fp = .2;
+    const int pageSize = 4096;
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,.5, bf_fp, pageSize);
     
+
     std::vector<int> to_insert;
     for (int i = 0; i < num_inserts; i++) {
-        to_insert.push_back(i);
+        to_insert.push_back(100 * i);
     }
     std::clock_t    start_insert;
     std::cout << "Starting inserts" << std::endl;
@@ -146,14 +147,15 @@ void runInOrderTest() {
 }
 
 void diskLevelTest(){
-    const int num_inserts = 10000;
+    const int num_inserts = 10000000;
     const int max_levels = 16;
-    const int num_runs = 1;
-    const int total_size = num_inserts * (2 * sizeof(int));
-    const int run_size = total_size / num_runs;
-    SkipList<int32_t, int32_t, max_levels>(INT32_MIN,INT32_MAX);
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(total_size, run_size, 2,1);
+    const int num_runs = 10;
+    const int buffer_capacity = 10000;
+    const double bf_fp = .0001;
+    const int pageSize = 4096;
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,.5, bf_fp, pageSize);
     
+
     std::vector<int> to_insert;
     for (int i = 0; i < num_inserts; i++) {
         to_insert.push_back(i);
@@ -169,24 +171,8 @@ void diskLevelTest(){
     int capacity = num_inserts * 2;
     int numElts = all.size();
     int level = 1;
-    auto disklevel = DiskLevel<int32_t,int32_t>(capacity, level);
+    auto disklevel = DiskLevel<int32_t,int32_t>(capacity, 4096, level);
     
-//    for (int j = 0; j < lsmTree._eltsPerRun; j++){
-//        auto kv = all[j];
-//        cout << "K: " << kv.key << ", " << "V: " << kv.value << endl;
-//    }
-
-}
-void swap(int* xs, int i, int j) {
-    int tmp = xs[i]; xs[i] = xs[j]; xs[j] = tmp;
-}
-void wmerge(int* xs, int i, int m, int j, int n, int w) {
-    while (i < m && j < n)
-        swap(xs, w++, xs[i] < xs[j] ? i++ : j++);
-    while (i < m)
-        swap(xs, w++, i++);
-    while (j < n)
-        swap(xs, w++, j++);
 }
 
 int main(){

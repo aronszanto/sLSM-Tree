@@ -48,7 +48,7 @@ struct KVPair {
         virtual void delete_key(const K key) = 0;
         virtual V lookup(K key) = 0;
         virtual unsigned long long num_elements() = 0;
-        virtual void set_size(const size_t size) = 0;
+        virtual void set_size(const unsigned long size) = 0;
         virtual vector<KVPair<K,V>> get_all() = 0;
     };
     

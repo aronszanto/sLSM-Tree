@@ -33,12 +33,6 @@ public:
     SkipList_Node<K,V,MAXLEVEL>* _forward[MAXLEVEL+1];
     
     
-    SkipList_Node() {
-        for (int i=1; i<=MAXLEVEL; i++) {
-            _forward[i] = NULL;
-        }
-    }
-    
     SkipList_Node(K searchKey):key(searchKey) {
         for (int i=1; i<=MAXLEVEL; i++) {
             _forward[i] = NULL;

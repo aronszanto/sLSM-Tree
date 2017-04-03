@@ -19,6 +19,7 @@ struct KVPair {
     
     K key;
     V value;
+    // bool tombstone;
     
     
     

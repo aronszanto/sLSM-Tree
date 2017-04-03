@@ -237,10 +237,10 @@ void bfPerfTest(){
 }
 void fencePointerTest(){
 
-    const int num_inserts = 200000000;
-    const int num_lookups = 1000000;
-    const int blocks = 4;
-    const int pageSize = 10000;
+    const long num_inserts = 1000 * 1000000;
+    const int num_lookups = 10000000;
+    const int blocks = 16;
+    const long pageSize = 1000000;
     std::random_device                  rand_dev;
     std::mt19937                        generator(rand_dev());
     std::uniform_int_distribution<int>  distribution(0, (int) (num_inserts * 1.2));
@@ -253,7 +253,7 @@ void fencePointerTest(){
     cout << "pushing" << endl;
     for (int b = 0; b < blocks; b++){
         for (int i = b * (num_inserts / blocks); i < (b + 1) * num_inserts / blocks; i++) {
-            if (i % 100000 == 0) cout << "insert " << i << endl;
+            if (i % 1000000 == 0) cout << "insert " << i << endl;
 
             to_insert.push_back((KVPair<int32_t, int32_t>) {i, i});
         }
@@ -272,8 +272,8 @@ void fencePointerTest(){
     start_lookup = std::clock();
     
     for (int i = 0 ; i < num_lookups; i++) {
-        if (i % 10000 == 0) cout << "lookup " << i << endl;
-        int lookup = dl.lookup(to_insert[i].key);
+        if (i % 1000000 == 0) cout << "lookup " << i << endl;
+        int lookup = dl.lookup(to_insert[to_lookup[i]].key);
     }
     double total_lookup = (std::clock() - start_lookup) / (double)(CLOCKS_PER_SEC);
     
@@ -286,7 +286,9 @@ void fencePointerTest(){
 int main(){
 
     
-    fencePointerTest();
+//    fencePointerTest();
+//    SkipList_Node<int, int, 4> sl = SkipList_Node<int, int, 4>(0);
+//    cout << sizeof(sl) << endl;
 
     
    

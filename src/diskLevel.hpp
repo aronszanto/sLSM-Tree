@@ -130,18 +130,63 @@ public:
                 return map[middle];
     
         }
-        return (KVPair_t) {0,0};
+        return (KVPair_t) {0,0}; // TODO THIS IS GROSS
     }
     V lookup(K key){
         KVPair_t k = {key, 0};
         int i = 0;
-        if (_iMaxFP == 0){
-            return binary_search(0, _numElts, k).value;
-        }
+
         // TODO: MAKE THIS BINARY SEARCH
+        
+        
+        
         while (i <= _iMaxFP && key >= _fencePointers[i]){
             ++i;
         }
+        int start;
+        int end;
+        
+        if (_iMaxFP == 0) {
+            start = 0;
+            end = _numElts;
+        }
+        else if (key => _fencePointers[_iMaxFP]) {
+            start = _iMaxFP * pageSize;
+            end = _numElts;
+        }
+        else {
+            unsigned min = 0, max = _iMaxFP;
+            while (min < max) {
+                
+                unsigned middle = (min + max) >> 1;
+                
+                if (key > _fencePointers[middle]){
+                    if (key < _fencePointers[middle + 1]){
+                        start = middle * pageSize;
+                        end = (middle + 1) pageSize;
+                        break; // TODO THIS IS ALSO GROSS
+                    }
+                    min = middle + 1;
+                }
+                else if (key < _fencePointers[middle])
+                    if (key > _fencePointers[middle - 1]){
+                        start = (middle - 1) * pageSize;
+                        end = (middle + 1) pageSize;
+                        break; // TODO THIS IS ALSO GROSS
+                    }
+
+                    max = middle;
+                else
+                    return [middle];
+                
+            }
+        }
+        
+        
+        
+        
+        
+        
         int start;
         int end;
         if (i == 0){

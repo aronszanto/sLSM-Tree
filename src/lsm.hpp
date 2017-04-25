@@ -30,12 +30,19 @@ public:
     vector<Run<K,V> *> C_0;
     
     vector<BloomFilter<K> *> filters;
-    DiskLevel<K,V> disk_level;
+    vector<DiskLevel<K,V>> diskLevels;
     
-    LSM<K,V>(unsigned long initialSize, unsigned int numRuns, double sizeRatio, double merged_frac, double bf_fp, unsigned int pageSize):_sizeRatio(sizeRatio),_initialSize(initialSize), _num_runs(numRuns), disk_level(initialSize * sizeRatio, pageSize, 1), _frac_runs_merged(merged_frac){
+    LSM<K,V>(unsigned long initialSize, unsigned int numRuns, double sizeRatio, double merged_frac, double bf_fp, unsigned int pageSize):_sizeRatio(sizeRatio),_initialSize(initialSize), _num_runs(numRuns), _frac_runs_merged(merged_frac){
         _activeRun = 0;
         _eltsPerRun = initialSize / numRuns;
         _bfFalsePositiveRate = bf_fp;
+        
+        
+        auto diskLevel = new DiskLevel<K, V>(initialSize * sizeRatio, pageSize, 1);
+        diskLevels.push_back(diskLevel);
+        _activeDiskLevel = 0;
+        _numDiskLevels = 0;
+        
         
         for (int i = 0; i < _num_runs; i++){
             RunType * run = new RunType(INT32_MIN,INT32_MAX);
@@ -77,14 +84,14 @@ public:
                 return lookupRes;
         }
         // it's not in C_0 so let's look at disk.
-        
-        V looked = disk_level.lookup(key);
-        if (looked){
-            return looked;
+        for (int i = _activeDiskLevel; i >= 0; --i){
+            
+            V lookupRes = diskLevels[i]->lookup(key);
+            if (lookupRes)
+                return lookupRes;
         }
-        else{
-            return NULL;
-        }
+
+        return NULL;
     }
     
     
@@ -104,6 +111,8 @@ public:
     double _bfFalsePositiveRate;
     unsigned int _num_runs;
     double _frac_runs_merged;
+    unsigned int _numDiskLevels;
+    unsigned int _activeDiskLevel;
     
     void do_merge(){
         int num_to_merge = ceil(_frac_runs_merged * _num_runs);

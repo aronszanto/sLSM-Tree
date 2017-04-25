@@ -106,7 +106,7 @@ public:
     double _frac_runs_merged;
     
     void do_merge(){
-        int num_to_merge = _frac_runs_merged * _num_runs;
+        int num_to_merge = ceil(_frac_runs_merged * _num_runs);
         if (num_to_merge == 0)
             return;
 //        cout << "going to merge " << num_to_merge << " runs" << endl;
@@ -119,6 +119,7 @@ public:
             
             to_merge.insert(to_merge.begin(), all.begin(), all.end());
             delete C_0[i];
+            delete filters[i];
         }
         sort(to_merge.begin(), to_merge.end());
 //        cout << "merging to disk" << endl;

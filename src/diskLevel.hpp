@@ -120,9 +120,9 @@ public:
 
 
         int min = offset, max = offset + n;
-        while (min < max) {
+        while (min <= max) {
             int middle = (min + max) >> 1;
-            if (key > map [middle])
+            if (key > map[middle])
                 min = middle + 1;
             else if (key < map[middle])
                 max = middle;
@@ -134,15 +134,7 @@ public:
     }
     V lookup(K key){
         KVPair_t k = {key, 0};
-        int i = 0;
-
-        // TODO: MAKE THIS BINARY SEARCH
         
-        
-        
-        while (i <= _iMaxFP && key >= _fencePointers[i]){
-            ++i;
-        }
         int start;
         int end;
         
@@ -150,7 +142,7 @@ public:
             start = 0;
             end = _numElts;
         }
-        else if (key => _fencePointers[_iMaxFP]) {
+        else if (key >= _fencePointers[_iMaxFP]) {
             start = _iMaxFP * pageSize;
             end = _numElts;
         }
@@ -161,49 +153,29 @@ public:
                 unsigned middle = (min + max) >> 1;
                 
                 if (key > _fencePointers[middle]){
-                    if (key < _fencePointers[middle + 1]){
+                    if (key <= _fencePointers[middle + 1]){
                         start = middle * pageSize;
-                        end = (middle + 1) pageSize;
+                        end = (middle + 1) * pageSize;
                         break; // TODO THIS IS ALSO GROSS
                     }
                     min = middle + 1;
                 }
-                else if (key < _fencePointers[middle])
-                    if (key > _fencePointers[middle - 1]){
+                else if (key < _fencePointers[middle]) {
+                    if (key >= _fencePointers[middle - 1]){
                         start = (middle - 1) * pageSize;
-                        end = (middle + 1) pageSize;
-                        break; // TODO THIS IS ALSO GROSS
+                        end = middle * pageSize;
+                        break; // TODO THIS IS ALSO GROSS. THIS WILL BREAK IF YOU DON'T KEEP TRACK OF MIN AND MAX.
                     }
 
-                    max = middle;
-                else
-                    return [middle];
+                    max = middle - 1;
+                }
+                
+                else {
+                    return map[middle * pageSize].value;
+                }
                 
             }
         }
-        
-        
-        
-        
-        
-        
-        int start;
-        int end;
-        if (i == 0){
-            start = 0;
-            end = pageSize;
-        }
-        else if (i > _iMaxFP){
-            start = _iMaxFP * pageSize;
-            end = _numElts;
-        }
-        else {
-            start = (i - 1) * pageSize;
-            end = i * pageSize;
-        }
-        // for no fence pointers, uncomment:
-//        start = 0;
-//        end = _numElts;
         
         auto ret = binary_search(start, end - start, k).value;
 

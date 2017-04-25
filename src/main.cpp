@@ -69,12 +69,12 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 1000000;
+    const int num_inserts = 500000;
     const int max_levels = 16;
-    const int num_runs = 10;
-    const int buffer_capacity = 5000 * num_runs;
+    const int num_runs = 1;
+    const int buffer_capacity = 100 * num_runs;
     const double bf_fp = .01;
-    const int pageSize = 2048;
+    const int pageSize = 10000;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,.5, bf_fp, pageSize);
     
     std::vector<int> to_insert;
@@ -237,10 +237,10 @@ void bfPerfTest(){
 }
 void fencePointerTest(){
 
-    const long num_inserts = 1000 * 1000000;
+    const long num_inserts = 1000 * 1000 * 1;
     const int num_lookups = 10000000;
     const int blocks = 16;
-    const long pageSize = 1000000;
+    const long pageSize = 100;
     std::random_device                  rand_dev;
     std::mt19937                        generator(rand_dev());
     std::uniform_int_distribution<int>  distribution(0, (int) (num_inserts * 1.2));
@@ -287,8 +287,7 @@ int main(){
 
     
 //    fencePointerTest();
-//    SkipList_Node<int, int, 4> sl = SkipList_Node<int, int, 4>(0);
-//    cout << sizeof(sl) << endl;
+    insertLookupTest();
 
     
    

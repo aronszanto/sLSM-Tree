@@ -98,19 +98,20 @@ public:
         doUnmap();
     }
     
-    void writeData(KVPair_t *run) {
+    void writeData(const KVPair_t *run, const size_t offset, const unsigned long len) {
         
-        memcpy(map, run, _capacity * sizeof(KVPair_t));
+        memcpy(map + offset, run, len * sizeof(KVPair_t));
         
         
+    }
+    void writeFencePointers(){
         // construct fence pointers
         _fencePointers.resize(0);
         _iMaxFP = -1; // TODO IS THIS SAFE?
-        for (int j = 0; j * pageSize < _numElts; j++) {
+        for (int j = 0; j * pageSize < _capacity; j++) {
             _fencePointers.push_back(map[j * pageSize].key);
             _iMaxFP++;
         }
-        
     }
     
     KVPair_t binary_search (const int offset, int n, KVPair_t key) {

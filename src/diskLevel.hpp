@@ -95,5 +95,20 @@ public: // TODO make some of these private
         runs.erase(runs.begin(), runs.begin() + _mergeSize);
         _activeRun -= _mergeSize;
     }
+    
+    V lookup (K key) {
+        for (int i = _activeRun; i >= 0; --i){
+//            if (!filters[i]->mayContain(&key, sizeof(K)))
+//                continue;
+            V lookupRes = runs[i]->lookup(key);
+            if (lookupRes) {
+                return lookupRes;
+            }
+            
+        }
+        
+        return NULL;
+        
+    }
 };
 #endif /* diskLevel_h */

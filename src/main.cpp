@@ -242,55 +242,55 @@ void bfPerfTest(){
         customTest(1000000,	100, 100000, numruns[i],	0.8,1000, 50);
 }
 void fencePointerTest(){
-
-    const long num_inserts = 1000 * 1000 * 1;
-    const int num_lookups = 10000000;
-    const int blocks = 16;
-    const long pageSize = 100;
-    const int num_runs = 10;
-    const long runSize = ceil(num_inserts / num_runs);
-    std::random_device                  rand_dev;
-    std::mt19937                        generator(rand_dev());
-    std::uniform_int_distribution<int>  distribution(0, (int) (num_inserts * 1.2));
-
-    std::vector<KVPair<int32_t, int32_t>> to_insert;
-    auto dl = DiskLevel<int32_t, int32_t>(pageSize, 1, runSize, num_runs, 1);
-    //
-
-    cout << "reserving" << endl;
-    to_insert.reserve(num_inserts);
-    cout << "pushing" << endl;
-    for (int b = 0; b < blocks; b++){
-        for (int i = b * (num_inserts / blocks); i < (b + 1) * num_inserts / blocks; i++) {
-            if (i % 1000000 == 0) cout << "insert " << i << endl;
-
-            to_insert.push_back((KVPair<int32_t, int32_t>) {i, i});
-        }
-        dl.merge(&to_insert[0], num_inserts / blocks);
-        to_insert.resize(0);
-        
-    }
-    
-    auto to_lookup = vector<int>();
-    to_lookup.reserve(num_lookups);
-    for (int i = 0; i< num_lookups; i++){
-        to_lookup.push_back(distribution(generator));
-    }
-    cout << "lookups" << endl;
-    std::clock_t    start_lookup;
-    start_lookup = std::clock();
-    
-    for (int i = 0 ; i < num_lookups; i++) {
-        if (i % 1000000 == 0) cout << "lookup " << i << endl;
-        int lookup = dl.lookup(to_insert[to_lookup[i]].key);
-    }
-    double total_lookup = (std::clock() - start_lookup) / (double)(CLOCKS_PER_SEC);
-    
-    double lpersec = num_lookups / total_lookup;
-    cout << num_inserts << "," << pageSize << "," << lpersec << "," << total_lookup << endl;
-
-    
-    
+//  TODO REDO THIS TEST
+//    const long num_inserts = 1000 * 1000 * 1;
+//    const int num_lookups = 10000000;
+//    const int blocks = 16;
+//    const long pageSize = 100;
+//    const int num_runs = 10;
+//    const long runSize = ceil(num_inserts / num_runs);
+//    std::random_device                  rand_dev;
+//    std::mt19937                        generator(rand_dev());
+//    std::uniform_int_distribution<int>  distribution(0, (int) (num_inserts * 1.2));
+//
+//    std::vector<KVPair<int32_t, int32_t>> to_insert;
+//    auto dl = DiskLevel<int32_t, int32_t>(pageSize, 1, runSize, num_runs, 1);
+//    //
+//
+//    cout << "reserving" << endl;
+//    to_insert.reserve(num_inserts);
+//    cout << "pushing" << endl;
+//    for (int b = 0; b < blocks; b++){
+//        for (int i = b * (num_inserts / blocks); i < (b + 1) * num_inserts / blocks; i++) {
+//            if (i % 1000000 == 0) cout << "insert " << i << endl;
+//
+//            to_insert.push_back((KVPair<int32_t, int32_t>) {i, i});
+//        }
+//        dl.merge(&to_insert[0], num_inserts / blocks);
+//        to_insert.resize(0);
+//        
+//    }
+//    
+//    auto to_lookup = vector<int>();
+//    to_lookup.reserve(num_lookups);
+//    for (int i = 0; i< num_lookups; i++){
+//        to_lookup.push_back(distribution(generator));
+//    }
+//    cout << "lookups" << endl;
+//    std::clock_t    start_lookup;
+//    start_lookup = std::clock();
+//    
+//    for (int i = 0 ; i < num_lookups; i++) {
+//        if (i % 1000000 == 0) cout << "lookup " << i << endl;
+//        int lookup = dl.lookup(to_insert[to_lookup[i]].key);
+//    }
+//    double total_lookup = (std::clock() - start_lookup) / (double)(CLOCKS_PER_SEC);
+//    
+//    double lpersec = num_lookups / total_lookup;
+//    cout << num_inserts << "," << pageSize << "," << lpersec << "," << total_lookup << endl;
+//
+//    
+//    
 }
 int main(){
 

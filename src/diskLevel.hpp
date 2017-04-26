@@ -59,21 +59,21 @@ public: // TODO make some of these private
     ~DiskLevel<K,V>(){
         }
     
-    void addRuns(vector<KVPair_t *> &runList, const unsigned long len) {
+    void addRuns(vector<KVPair_t *> &runList, const unsigned long runLen) {
         assert(_activeRun < _numRuns);
-        assert(len * runList.size() == runs[_activeRun]->runSize);
+        assert(runLen * runList.size() == _runSize);
         
         for (int i = 0; i < runList.size(); i++){
-            runs[_activeRun]->writeData(runList[i], i * len, len);
+            runs[_activeRun]->writeData(runList[i], i * runLen, runLen);
         }
         _activeRun++;
         
     }
     
-    void addRun(KVPair_t * runToAdd, const unsigned long len){
+    void addRun(KVPair_t * runToAdd, const unsigned long runLen){
         assert(_activeRun < _numRuns);
-        assert(len == runs[_activeRun]->runSize);
-        runs[_activeRun]->writeData(runToAdd, 0, len);
+        assert(runLen == _runSize);
+        runs[_activeRun]->writeData(runToAdd, 0, runLen);
         _activeRun++;
     }
     

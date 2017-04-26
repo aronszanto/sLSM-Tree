@@ -133,7 +133,7 @@ public:
         }
         sort(to_merge.begin(), to_merge.end());
 //        cout << "merging to disk" << endl;
-        diskLevels[0]->merge(&to_merge[0], to_merge.size());
+        diskLevels[0]->addRun(&to_merge[0], to_merge.size());
         C_0.erase(C_0.begin(), C_0.begin() + _num_to_merge);
         filters.erase(filters.begin(), filters.begin() + _num_to_merge);
 

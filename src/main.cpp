@@ -75,7 +75,8 @@ void insertLookupTest(){
     const int buffer_capacity = 2000 * num_runs;
     const double bf_fp = .01;
     const int pageSize = 10000;
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,.5, bf_fp, pageSize);
+    const int disk_run_level = 10;
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,.5, bf_fp, pageSize, disk_run_level);
     
     std::vector<int> to_insert;
     for (int i = 0; i < num_inserts; i++) {
@@ -120,7 +121,8 @@ void runInOrderTest() {
     const int buffer_capacity = 1000000;
     const double bf_fp = .2;
     const int pageSize = 4096;
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,.5, bf_fp, pageSize);
+    const int disk_run_level = 10;
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,.5, bf_fp, pageSize, disk_run_level);
     
 
     std::vector<int> to_insert;
@@ -153,7 +155,8 @@ void diskLevelTest(){
     const int buffer_capacity = 10000;
     const double bf_fp = .0001;
     const int pageSize = 4096;
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,.5, bf_fp, pageSize);
+    const int disk_run_level = 10;
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,.5, bf_fp, pageSize, disk_run_level);
     
 
     std::vector<int> to_insert;
@@ -174,13 +177,13 @@ void diskLevelTest(){
     auto disklevel = DiskLevel<int32_t,int32_t>(capacity, 4096, level);
     
 }
-void customTest(const int num_inserts, const int num_runs, const int buffer_capacity,  const double bf_fp, const double merge_frac, const int pageSize){
+void customTest(const int num_inserts, const int num_runs, const int buffer_capacity,  const double bf_fp, const double merge_frac, const int pageSize, const int diskRunsPerLevel){
     std::random_device                  rand_dev;
     std::mt19937                        generator(rand_dev());
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,merge_frac, bf_fp, pageSize);
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,merge_frac, bf_fp, pageSize, diskRunsPerLevel);
     
     std::vector<int> to_insert;
     for (int i = 0; i < num_inserts; i++) {
@@ -221,6 +224,7 @@ void cartesianTest(){
     vector<double> bf_fp = {0.001, 0.1};
     vector<double> merge_frac = {.2, .5, .8};
     vector<int> pss = {100, 1000};
+    vector<int> drpl = {5, 10, 15, 20, 50};
     
     for (int i = 0; i < numins.size(); i++)
         for(int n = 0; n < numruns.size(); n++)
@@ -228,12 +232,13 @@ void cartesianTest(){
                 for(int bf = 0; bf < bf_fp.size(); bf++)
                     for (int m = 0; m < merge_frac.size(); m++)
                         for (int p = 0; p < pss.size(); p++)
-                            customTest(numins[i], numruns[n], buffercaps[b], bf_fp[bf], merge_frac[m], pss[p]);
+                            for (int d = 0; d < drpl.size(); d++)
+                                customTest(numins[i], numruns[n], buffercaps[b], bf_fp[bf], merge_frac[m], pss[p], drpl[d]);
 }
 void bfPerfTest(){
     vector<double> numruns = {.00001, .000001};
     for (int i = 0; i < numruns.size(); i++)
-        customTest(1000000,	100, 100000, numruns[i],	0.8,1000);
+        customTest(1000000,	100, 100000, numruns[i],	0.8,1000, 50);
 }
 void fencePointerTest(){
 

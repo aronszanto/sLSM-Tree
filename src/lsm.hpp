@@ -30,18 +30,18 @@ public:
     vector<Run<K,V> *> C_0;
     
     vector<BloomFilter<K> *> filters;
-    vector<DiskLevel<K,V>> diskLevels;
+    vector<DiskLevel<K,V> *> diskLevels;
     
-    LSM<K,V>(unsigned long initialSize, unsigned int numRuns, double sizeRatio, double merged_frac, double bf_fp, unsigned int pageSize):_sizeRatio(sizeRatio),_initialSize(initialSize), _num_runs(numRuns), _frac_runs_merged(merged_frac){
+    LSM<K,V>(unsigned long initialSize, unsigned int numRuns, double sizeRatio, double merged_frac, double bf_fp, unsigned int pageSize, unsigned int diskRunsPerLevel):_sizeRatio(sizeRatio),_initialSize(initialSize), _num_runs(numRuns), _frac_runs_merged(merged_frac), _diskRunsPerLevel(diskRunsPerLevel){
         _activeRun = 0;
         _eltsPerRun = initialSize / numRuns;
         _bfFalsePositiveRate = bf_fp;
         
         
-        auto diskLevel = new DiskLevel<K, V>(initialSize * sizeRatio, pageSize, 1);
+        DiskLevel<K,V> * diskLevel = new DiskLevel<K, V>(initialSize * sizeRatio, pageSize, 1);
         diskLevels.push_back(diskLevel);
         _activeDiskLevel = 0;
-        _numDiskLevels = 0;
+        _numDiskLevels = 1;
         
         
         for (int i = 0; i < _num_runs; i++){
@@ -113,6 +113,7 @@ public:
     double _frac_runs_merged;
     unsigned int _numDiskLevels;
     unsigned int _activeDiskLevel;
+    unsigned int _diskRunsPerLevel;
     
     void do_merge(){
         int num_to_merge = ceil(_frac_runs_merged * _num_runs);
@@ -132,7 +133,7 @@ public:
         }
         sort(to_merge.begin(), to_merge.end());
 //        cout << "merging to disk" << endl;
-        disk_level.merge(&to_merge[0], to_merge.size());
+        diskLevels[0]->merge(&to_merge[0], to_merge.size());
         C_0.erase(C_0.begin(), C_0.begin() + num_to_merge);
         filters.erase(filters.begin(), filters.begin() + num_to_merge);
 

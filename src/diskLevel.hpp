@@ -57,7 +57,7 @@ public: // TODO make some of these private
     }
     
     ~DiskLevel<K,V>(){
-            }
+        }
     
     void addRun(vector<KVPair_t *> &runList, const unsigned long len) {
         assert(_activeRun < _numRuns);
@@ -70,5 +70,23 @@ public: // TODO make some of these private
         
     }
     
+    
+    vector<KVPair_t *> getRunsToMerge(){
+        vector<KVPair_t *> toMerge;
+        for (int i = 0; i < _mergeSize; i++){
+            toMerge.push_back(runs[i]);
+        }
+        return toMerge;
+        
+    }
+    
+    void freeMergedRuns(vector<KVPair_t *> &toFree){
+        assert(toFree.size() == _mergeSize);
+        for (int i = 0; i < _mergeSize; i++){
+            delete toFree[i];
+        }
+        runs.erase(runs.begin(), runs.begin() + _mergeSize);
+        _activeRun -= _mergeSize;
+    }
 };
 #endif /* diskLevel_h */

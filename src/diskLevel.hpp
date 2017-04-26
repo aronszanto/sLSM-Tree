@@ -31,17 +31,17 @@ template <class K, class V>
 class DiskLevel {
 public: // TODO make some of these private
     int _level;
-    unsigned _pageSize;
-    unsigned long _runSize;
-    unsigned _numRuns;
-    unsigned _activeRun;
+    unsigned _pageSize; // number of elements per fence pointer
+    unsigned long _runSize; // number of elts in a run
+    unsigned _numRuns; // number of runs in a level
+    unsigned _activeRun; // index of active run
     unsigned _mergeSize; // # of runs to merge downwards
     vector<DiskRun<K,V> *> runs;
 
     typedef KVPair<K,V> KVPair_t;
     
     
-    DiskLevel<K,V> (unsigned int pageSize, int level, unsigned long runSize, unsigned numRuns, unsigned mergeSize):_numRuns(numRuns), _runSize(runSize),_level(level), _pageSize(pageSize), _mergeSize(mergeSize), _activeRun(0){
+    DiskLevel<K,V>(unsigned int pageSize, int level, unsigned long runSize, unsigned numRuns, unsigned mergeSize):_numRuns(numRuns), _runSize(runSize),_level(level), _pageSize(pageSize), _mergeSize(mergeSize), _activeRun(0){
         
         
         
@@ -59,7 +59,7 @@ public: // TODO make some of these private
     ~DiskLevel<K,V>(){
         }
     
-    void addRun(vector<KVPair_t *> &runList, const unsigned long len) {
+    void addRuns(vector<KVPair_t *> &runList, const unsigned long len) {
         assert(_activeRun < _numRuns);
         assert(len * runList.size() == runs[_activeRun]->runSize);
         
@@ -68,6 +68,13 @@ public: // TODO make some of these private
         }
         _activeRun++;
         
+    }
+    
+    void addRun(KVPair_t * runToAdd, const unsigned long len){
+        assert(_activeRun < _numRuns);
+        assert(len == runs[_activeRun]->runSize);
+        runs[_activeRun]->writeData(runToAdd, 0, len);
+        _activeRun++;
     }
     
     

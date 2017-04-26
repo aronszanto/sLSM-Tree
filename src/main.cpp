@@ -149,33 +149,34 @@ void runInOrderTest() {
 }
 
 void diskLevelTest(){
-    const int num_inserts = 10000000;
-    const int max_levels = 16;
-    const int num_runs = 10;
-    const int buffer_capacity = 10000;
-    const double bf_fp = .0001;
-    const int pageSize = 4096;
-    const int disk_run_level = 10;
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,.5, bf_fp, pageSize, disk_run_level);
-    
-
-    std::vector<int> to_insert;
-    for (int i = 0; i < num_inserts; i++) {
-        to_insert.push_back(i);
-    }
-    std::clock_t    start_insert;
-    std::cout << "Starting inserts" << std::endl;
-    start_insert = std::clock();
-    for (int i = 0; i < num_inserts; i++) {
-        lsmTree.insert_key(to_insert[i], i);
-    }
-    
-    vector<KVPair<int32_t, int32_t>> all = lsmTree.C_0[0]->get_all();
-    int capacity = num_inserts * 2;
-    int numElts = all.size();
-    int level = 1;
-    auto disklevel = DiskLevel<int32_t,int32_t>(capacity, 4096, level);
-    
+    // REDO TEST
+//    const int num_inserts = 10000000;
+//    const int max_levels = 16;
+//    const int num_runs = 10;
+//    const int buffer_capacity = 10000;
+//    const double bf_fp = .0001;
+//    const int pageSize = 4096;
+//    const int disk_run_level = 10;
+//    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,.5, bf_fp, pageSize, disk_run_level);
+//    
+//
+//    std::vector<int> to_insert;
+//    for (int i = 0; i < num_inserts; i++) {
+//        to_insert.push_back(i);
+//    }
+//    std::clock_t    start_insert;
+//    std::cout << "Starting inserts" << std::endl;
+//    start_insert = std::clock();
+//    for (int i = 0; i < num_inserts; i++) {
+//        lsmTree.insert_key(to_insert[i], i);
+//    }
+//    
+//    vector<KVPair<int32_t, int32_t>> all = lsmTree.C_0[0]->get_all();
+//    int capacity = num_inserts * 2;
+//    int numElts = all.size();
+//    int level = 1;
+//    auto disklevel = DiskLevel<int32_t,int32_t>(capacity, 4096, level);
+//    
 }
 void customTest(const int num_inserts, const int num_runs, const int buffer_capacity,  const double bf_fp, const double merge_frac, const int pageSize, const int diskRunsPerLevel){
     std::random_device                  rand_dev;
@@ -246,12 +247,15 @@ void fencePointerTest(){
     const int num_lookups = 10000000;
     const int blocks = 16;
     const long pageSize = 100;
+    const int num_runs = 10;
+    const long runSize = ceil(num_inserts / num_runs);
     std::random_device                  rand_dev;
     std::mt19937                        generator(rand_dev());
     std::uniform_int_distribution<int>  distribution(0, (int) (num_inserts * 1.2));
 
     std::vector<KVPair<int32_t, int32_t>> to_insert;
-    auto dl = DiskLevel<int32_t, int32_t>(num_inserts + 1000, pageSize, 2);
+    auto dl = DiskLevel<int32_t, int32_t>(pageSize, 1, runSize, num_runs, 1);
+    //
 
     cout << "reserving" << endl;
     to_insert.reserve(num_inserts);

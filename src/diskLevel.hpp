@@ -37,13 +37,13 @@ public: // TODO make some of these private
     unsigned _numRuns; // number of runs in a level
     unsigned _activeRun; // index of active run
     unsigned _mergeSize; // # of runs to merge downwards
+    double _bf_fp; // bloom filter false positive
     vector<DiskRun<K,V> *> runs;
 
     typedef KVPair<K,V> KVPair_t;
     
     
-    DiskLevel<K,V>(unsigned int pageSize, int level, unsigned long runSize, unsigned numRuns, unsigned mergeSize):_numRuns(numRuns), _runSize(runSize),_level(level), _pageSize(pageSize), _mergeSize(mergeSize), _activeRun(0){
-        
+    DiskLevel<K,V>(unsigned int pageSize, int level, unsigned long runSize, unsigned numRuns, unsigned mergeSize, double bf_fp):_numRuns(numRuns), _runSize(runSize),_level(level), _pageSize(pageSize), _mergeSize(mergeSize), _activeRun(0), _bf_fp(bf_fp){
         
         
         for (int i = 0; i < _numRuns; i++){

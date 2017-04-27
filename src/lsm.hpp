@@ -160,7 +160,7 @@ public:
         }
         
         if (diskLevels[level]->levelFull()) {
-//            cout << "level " << level << " full, cascading" << endl;
+            cout << "level " << level << " full, cascading" << endl;
             mergeRunsToLevel(level + 1); // merge down one, recursively
         }
         

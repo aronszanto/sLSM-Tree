@@ -52,6 +52,7 @@ public:
     KVPair_t *map;
     int fd;
     unsigned int pageSize;
+    BloomFilter<K> bf;
     
     DiskRun<K,V> (unsigned long long capacity, unsigned int pageSize, int level, int runID):_capacity(capacity),_level(level), _iMaxFP(0), pageSize(pageSize), _runID(runID) {
         
@@ -92,7 +93,7 @@ public:
             exit(EXIT_FAILURE);
         }
         
-        
+        bf = BloomFilter<K>(
         
     }
     ~DiskRun<K,V>(){
@@ -162,7 +163,7 @@ public:
                 
                 unsigned middle = (min + max) >> 1;
                 if (key > _fencePointers[middle]){
-                    if (key <= _fencePointers[middle + 1]){
+                    if (key < _fencePointers[middle + 1]){
                         start = middle * pageSize;
                         end = (middle + 1) * pageSize;
                         break; // TODO THIS IS ALSO GROSS

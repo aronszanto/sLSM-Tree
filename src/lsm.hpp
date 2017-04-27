@@ -17,7 +17,7 @@
 #include <cstdint>
 #include <vector>
 
-
+const int TOMBSTONE = INT_MIN;
 
 template <class K, class V>
 class LSM {
@@ -27,6 +27,7 @@ class LSM {
     
     
 public:
+    V V_TOMBSTONE = (V) TOMBSTONE;
     vector<Run<K,V> *> C_0;
     
     vector<BloomFilter<K> *> filters;
@@ -81,18 +82,25 @@ public:
                 continue;
             
             V lookupRes = C_0[i]->lookup(key, &found);
-            if (found)
-                return lookupRes;
+            if (found) {
+                return lookupRes == V_TOMBSTONE ? NULL : lookupRes;
+            }
         }
         // it's not in C_0 so let's look at disk.
         for (int i = _numDiskLevels - 1; i >= 0; --i){
             
             V lookupRes = diskLevels[i]->lookup(key, &found);
-            if (found)
-                return lookupRes;
+            if (found) {
+                return lookupRes == V_TOMBSTONE ? NULL : lookupRes;
+            }
         }
 
         return NULL;
+    }
+    
+    void delete_key(K key){
+        insert_key(key, V_TOMBSTONE);
+        
     }
     
     

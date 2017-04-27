@@ -142,7 +142,7 @@ public:
         _n--;
     }
     
-    V lookup(const K searchKey) {
+    V lookup(const K searchKey, bool *found) {
         Node* currNode = p_listHead;
         for(int level=cur_max_level; level >=1; level--) {
             while (currNode->_forward[level]->key < searchKey) {
@@ -151,6 +151,7 @@ public:
         }
         currNode = currNode->_forward[1];
         if (currNode->key == searchKey) {
+            *found = true;
             return currNode->value;
         }
         else {

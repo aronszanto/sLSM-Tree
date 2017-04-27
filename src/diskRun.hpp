@@ -113,7 +113,7 @@ public:
         }
     }
     
-    KVPair_t binary_search (const int offset, int n, KVPair_t key) {
+    KVPair_t binary_search (const int offset, int n, KVPair_t key, bool *found) {
         
         
         int min = offset, max = offset + n;
@@ -123,21 +123,27 @@ public:
                 min = middle + 1;
             else if (key < map[middle])
                 max = middle;
-            else
+            else {
+                *found = true;
                 return map[middle];
+            }
             
         }
         return (KVPair_t) {0,0}; // TODO THIS IS GROSS
     }
-    V lookup(K key){
+    V lookup(K key, bool *found){
         KVPair_t k = {key, 0};
         
-        int start;
+        unsigned long long start;
         int end;
         
         if (_iMaxFP == 0) {
             start = 0;
             end = _capacity;
+        }
+        else if (key <= _fencePointers[1]){
+            start = 0;
+            end = pageSize;
         }
         else if (key >= _fencePointers[_iMaxFP]) {
             start = _iMaxFP * pageSize;
@@ -148,7 +154,6 @@ public:
             while (min < max) {
                 
                 unsigned middle = (min + max) >> 1;
-                
                 if (key > _fencePointers[middle]){
                     if (key <= _fencePointers[middle + 1]){
                         start = middle * pageSize;
@@ -168,15 +173,14 @@ public:
                 }
                 
                 else {
+                    *found = true;
                     return map[middle * pageSize].value;
                 }
                 
             }
         }
         
-        auto ret = binary_search(start, end - start, k).value;
-        
-        return ret;
+        return binary_search(start, end - start, k, found).value;
     }
     
     

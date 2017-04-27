@@ -75,8 +75,8 @@ void insertLookupTest(){
     const int buffer_capacity = 1000 * num_runs;
     const double bf_fp = .01;
     const int pageSize = 100;
-    const int disk_runs_per_level = 10;
-    const double merge_fraction = .2;
+    const int disk_runs_per_level = 2;
+    const double merge_fraction = .5;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
     std::vector<int> to_insert;

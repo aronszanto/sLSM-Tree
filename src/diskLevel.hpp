@@ -107,13 +107,14 @@ public: // TODO make some of these private
         return (_activeRun == _numRuns);
     }
     
-    V lookup (K key) {
-        for (int i = _activeRun; i >= 0; --i){
+    V lookup (K key, bool *found) {
+        int maxRunToSearch = levelFull() ? _numRuns - 1 : _activeRun;
+        for (int i = maxRunToSearch; i >= 0; --i){
 //            if (!filters[i]->mayContain(&key, sizeof(K)))
 //                continue;
             // TODO PUT BFs HERE!
-            V lookupRes = runs[i]->lookup(key);
-            if (lookupRes) {
+            V lookupRes = runs[i]->lookup(key, found);
+            if (*found) {
                 return lookupRes;
             }
             

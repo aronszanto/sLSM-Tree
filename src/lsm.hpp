@@ -72,6 +72,7 @@ public:
     }
     
     V lookup(K key){
+        bool found = false;
         // TODO keep track of min/max in runs?
 //        cout << "looking for key " << key << endl;
         for (int i = _activeRun; i >= 0; --i){
@@ -79,15 +80,15 @@ public:
             if (!filters[i]->mayContain(&key, sizeof(K)))
                 continue;
             
-            V lookupRes = C_0[i]->lookup(key);
-            if (lookupRes)
+            V lookupRes = C_0[i]->lookup(key, &found);
+            if (found)
                 return lookupRes;
         }
         // it's not in C_0 so let's look at disk.
         for (int i = _numDiskLevels - 1; i >= 0; --i){
             
-            V lookupRes = diskLevels[i]->lookup(key);
-            if (lookupRes)
+            V lookupRes = diskLevels[i]->lookup(key, &found);
+            if (found)
                 return lookupRes;
         }
 

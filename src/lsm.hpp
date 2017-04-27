@@ -147,8 +147,8 @@ public:
         if (level == _numDiskLevels){ // if this is the last level
 //            cout << "loc 4" << endl;
 //            diskLevels[0]->runs[0]->printElts();
-            cout << "adding a new level: " << level << endl;
-            cout << "new level runsize: " <<  diskLevels[level - 1]->_runSize * diskLevels[level - 1]->_mergeSize << endl;
+//            cout << "adding a new level: " << level << endl;
+//            cout << "new level runsize: " <<  diskLevels[level - 1]->_runSize * diskLevels[level - 1]->_mergeSize << endl;
             DiskLevel<K,V> * newLevel = new DiskLevel<K, V>(_pageSize, level + 1, diskLevels[level - 1]->_runSize * diskLevels[level - 1]->_mergeSize, _diskRunsPerLevel, ceil(_diskRunsPerLevel * _frac_runs_merged), _bfFalsePositiveRate);
 //            cout << "loc 5" << endl;
 //            diskLevels[0]->runs[0]->printElts();
@@ -160,7 +160,7 @@ public:
         }
         
         if (diskLevels[level]->levelFull()) {
-            cout << "level " << level << " full, cascading" << endl;
+//            cout << "level " << level << " full, cascading" << endl;
             mergeRunsToLevel(level + 1); // merge down one, recursively
         }
         

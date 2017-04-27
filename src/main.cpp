@@ -71,12 +71,12 @@ void insertLookupTest(){
     
     const int num_inserts = 1000000;
     const int max_levels = 16;
-    const int num_runs = 1;
-    const int buffer_capacity = 10000 * num_runs;
-    const double bf_fp = .01;
+    const int num_runs = 100;
+    const int buffer_capacity = 500 * num_runs;
+    const double bf_fp = .001;
     const int pageSize = 512;
-    const int disk_runs_per_level = 8;
-    const double merge_fraction = .25;
+    const int disk_runs_per_level = 10;
+    const double merge_fraction = .8;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
     std::vector<int> to_insert;
@@ -90,7 +90,7 @@ void insertLookupTest(){
     std::cout << "Starting inserts" << std::endl;
     start_insert = std::clock();
     for (int i = 0; i < num_inserts; i++) {
-        if ( i % 10000 == 0 ) cout << "insert " << i << endl;
+        if ( i % 100000 == 0 ) cout << "insert " << i << endl;
         lsmTree.insert_key(to_insert[i],i);
         
     }
@@ -106,7 +106,7 @@ void insertLookupTest(){
     start_lookup = std::clock();
 //    lsmTree.printElts();
     for (int i = 0 ; i < num_inserts; i++) {
-        if ( i % 10000 == 0 ) cout << "lookup " << i << endl;
+        if ( i % 100000 == 0 ) cout << "lookup " << i << endl;
         
         int lookup = lsmTree.lookup(to_insert[i]);
         if (lookup != i)

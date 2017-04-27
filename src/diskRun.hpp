@@ -116,17 +116,18 @@ public:
     KVPair_t binary_search (const int offset, int n, KVPair_t key, bool *found) {
         
         
-        int min = offset, max = offset + n;
-        while (min < max) {
-            int middle = (min + max) >> 1;
+        int min = offset, max = offset + n - 1;
+        int middle = (min + max) >> 1;
+        while (min <= max) {
             if (key > map[middle])
                 min = middle + 1;
-            else if (key < map[middle])
-                max = middle;
-            else {
+            else if (key.key == map[middle].key) {
                 *found = true;
                 return map[middle];
             }
+            else
+                max = middle - 1;
+            middle = (min + max) >> 1;
             
         }
         return (KVPair_t) {0,0}; // TODO THIS IS GROSS
@@ -141,7 +142,7 @@ public:
             start = 0;
             end = _capacity;
         }
-        else if (key <= _fencePointers[1]){
+        else if (key < _fencePointers[1]){
             start = 0;
             end = pageSize;
         }

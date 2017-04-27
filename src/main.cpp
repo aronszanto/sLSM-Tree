@@ -69,14 +69,15 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 1000000;
+    const int num_inserts = 100000;
     const int max_levels = 16;
-    const int num_runs = 100;
-    const int buffer_capacity = 2000 * num_runs;
+    const int num_runs = 10;
+    const int buffer_capacity = 1000 * num_runs;
     const double bf_fp = .01;
-    const int pageSize = 10000;
-    const int disk_run_level = 10;
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,.5, bf_fp, pageSize, disk_run_level);
+    const int pageSize = 100;
+    const int disk_runs_per_level = 10;
+    const double merge_fraction = .2;
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
     std::vector<int> to_insert;
     for (int i = 0; i < num_inserts; i++) {
@@ -103,7 +104,7 @@ void insertLookupTest(){
     start_lookup = std::clock();
 
     for (int i = 0 ; i < num_inserts; i++) {
-        if ( i % 10000 == 0 ) cout << "lookup " << i << endl;
+        if ( i % 1 == 0 ) cout << "lookup " << i << endl;
 
         int lookup = lsmTree.lookup(to_insert[i]);
         if (lookup != i)
@@ -121,8 +122,9 @@ void runInOrderTest() {
     const int buffer_capacity = 1000000;
     const double bf_fp = .2;
     const int pageSize = 4096;
-    const int disk_run_level = 10;
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,.5, bf_fp, pageSize, disk_run_level);
+    const int disk_runs_per_level = 10;
+    const double merge_fraction = .2;
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
 
     std::vector<int> to_insert;
@@ -184,7 +186,7 @@ void customTest(const int num_inserts, const int num_runs, const int buffer_capa
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs, 2,merge_frac, bf_fp, pageSize, diskRunsPerLevel);
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_frac, bf_fp, pageSize, diskRunsPerLevel);
     
     std::vector<int> to_insert;
     for (int i = 0; i < num_inserts; i++) {

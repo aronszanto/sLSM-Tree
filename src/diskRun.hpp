@@ -52,7 +52,7 @@ public:
     int fd;
     unsigned int pageSize;
     
-    DiskRun<K,V> (unsigned long long capacity, unsigned int pageSize, int level, int runID):_capacity(capacity),_numElts(0),_level(level), _iMaxFP(0), pageSize(pageSize) {
+    DiskRun<K,V> (unsigned long long capacity, unsigned int pageSize, int level, int runID):_capacity(capacity),_level(level), _iMaxFP(0), pageSize(pageSize) {
         
         _filename = ("C_" + to_string(level) + "_" + to_string(runID) + ".txt").c_str();
         
@@ -100,8 +100,7 @@ public:
     
     void writeData(const KVPair_t *run, const size_t offset, const unsigned long len) {
         
-        memcpy(map + offset, run, len * sizeof(KVPair_t));
-        
+        memcpy(map + offset, run, len * sizeof(KVPair_t));        
         
     }
     void writeFencePointers(){
@@ -118,7 +117,7 @@ public:
         
         
         int min = offset, max = offset + n;
-        while (min <= max) {
+        while (min < max) {
             int middle = (min + max) >> 1;
             if (key > map[middle])
                 min = middle + 1;
@@ -138,11 +137,11 @@ public:
         
         if (_iMaxFP == 0) {
             start = 0;
-            end = _numElts;
+            end = _capacity;
         }
         else if (key >= _fencePointers[_iMaxFP]) {
             start = _iMaxFP * pageSize;
-            end = _numElts;
+            end = _capacity;
         }
         else {
             unsigned min = 0, max = _iMaxFP;
@@ -183,7 +182,6 @@ public:
     
 private:
     unsigned long long _capacity;
-    unsigned long long _numElts;
     const char  *_filename;
     int _level;
     vector<K> _fencePointers;

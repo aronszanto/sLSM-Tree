@@ -59,27 +59,29 @@ public: // TODO make some of these private
     ~DiskLevel<K,V>(){
         }
     
-    void addRuns(vector<KVPair_t *> &runList, const unsigned long runLen) {
+    void addRuns(vector<DiskRun<K, V> *> &runList, const unsigned long runLen) {
         assert(_activeRun < _numRuns);
         assert(runLen * runList.size() == _runSize);
         
         for (int i = 0; i < runList.size(); i++){
-            runs[_activeRun]->writeData(runList[i], i * runLen, runLen);
+            runs[_activeRun]->writeData(runList[i]->map, i * runLen, runLen);
         }
+        runs[_activeRun]->writeFencePointers();
         _activeRun++;
         
     }
     
-    void addRun(KVPair_t * runToAdd, const unsigned long runLen){
+    void addRunByArray(KVPair_t * runToAdd, const unsigned long runLen){
         assert(_activeRun < _numRuns);
         assert(runLen == _runSize);
         runs[_activeRun]->writeData(runToAdd, 0, runLen);
+        runs[_activeRun]->writeFencePointers();
         _activeRun++;
     }
     
     
-    vector<KVPair_t *> getRunsToMerge(){
-        vector<KVPair_t *> toMerge;
+    vector<DiskRun<K,V> *> getRunsToMerge(){
+        vector<DiskRun<K, V> *> toMerge;
         for (int i = 0; i < _mergeSize; i++){
             toMerge.push_back(runs[i]);
         }
@@ -87,19 +89,29 @@ public: // TODO make some of these private
         
     }
     
-    void freeMergedRuns(vector<KVPair_t *> &toFree){
+    void freeMergedRuns(vector<DiskRun<K,V> *> &toFree){
         assert(toFree.size() == _mergeSize);
         for (int i = 0; i < _mergeSize; i++){
             delete toFree[i];
         }
         runs.erase(runs.begin(), runs.begin() + _mergeSize);
         _activeRun -= _mergeSize;
+        
+        for (int i = _activeRun; i < _numRuns; i++){
+            DiskRun<K, V> * newRun = new DiskRun<K,V>(_runSize, _pageSize, _level, i);
+            runs.push_back(newRun);
+        }
+    }
+    
+    bool levelFull(){
+        return (_activeRun == _numRuns);
     }
     
     V lookup (K key) {
         for (int i = _activeRun; i >= 0; --i){
 //            if (!filters[i]->mayContain(&key, sizeof(K)))
 //                continue;
+            // TODO PUT BFs HERE!
             V lookupRes = runs[i]->lookup(key);
             if (lookupRes) {
                 return lookupRes;

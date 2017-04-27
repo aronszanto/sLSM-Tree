@@ -56,7 +56,6 @@ public:
     DiskRun<K,V> (unsigned long long capacity, unsigned int pageSize, int level, int runID):_capacity(capacity),_level(level), _iMaxFP(0), pageSize(pageSize), _runID(runID) {
         
         _filename = "C_" + to_string(level) + "_" + to_string(runID) + ".txt";
-        cout << _filename << endl;
         
         size_t filesize = capacity * sizeof(KVPair_t);
         
@@ -98,7 +97,6 @@ public:
     }
     ~DiskRun<K,V>(){
         doUnmap();
-        cout << "removing file " << _filename << endl;
         
         if (remove(_filename.c_str())){
             perror(("Error removing file " + string(_filename)).c_str());
@@ -227,7 +225,6 @@ private:
     }
     
     void doUnmap(){
-        cout << "filename at doUnmap: " << _filename << endl;
         size_t filesize = _capacity * sizeof(KVPair_t);
         
         if (munmap(map, filesize) == -1) {

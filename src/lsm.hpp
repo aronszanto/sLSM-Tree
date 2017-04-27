@@ -148,6 +148,7 @@ public:
 //            cout << "loc 4" << endl;
 //            diskLevels[0]->runs[0]->printElts();
             cout << "adding a new level: " << level << endl;
+            cout << "new level runsize: " <<  diskLevels[level - 1]->_runSize * diskLevels[level - 1]->_mergeSize << endl;
             DiskLevel<K,V> * newLevel = new DiskLevel<K, V>(_pageSize, level + 1, diskLevels[level - 1]->_runSize * diskLevels[level - 1]->_mergeSize, _diskRunsPerLevel, ceil(_diskRunsPerLevel * _frac_runs_merged));
 //            cout << "loc 5" << endl;
 //            diskLevels[0]->runs[0]->printElts();
@@ -159,33 +160,24 @@ public:
         }
         
         if (diskLevels[level]->levelFull()) {
-            cout << "level " << level << " full, cascading" << endl;
+//            cout << "level " << level << " full, cascading" << endl;
             mergeRunsToLevel(level + 1); // merge down one, recursively
         }
         
 
-        cout << "writing values from level " << (level - 1) << " to level " << level << endl;
+//        cout << "writing values from level " << (level - 1) << " to level " << level << endl;
         vector<DiskRun<K, V> *> runsToMerge = diskLevels[level - 1]->getRunsToMerge();
         unsigned long runLen = diskLevels[level - 1]->_runSize;
-        cout << "values to write from level " << level - 1 << ": " << endl;
-        for (int i = 0; i < runsToMerge.size(); i++){
-            for (int j = 0; j < diskLevels[level - 1]->_runSize; j++){
-                cout << runsToMerge[i]->map[j].key << " ";
-            }
-            cout << endl;
-        }
+//        cout << "values to write from level " << level - 1 << ": " << endl;
+//        for (int i = 0; i < runsToMerge.size(); i++){
+//            for (int j = 0; j < diskLevels[level - 1]->_runSize; j++){
+//                cout << runsToMerge[i]->map[j].key << " ";
+//            }
+//            cout << endl;
+//        }
         diskLevels[level]->addRuns(runsToMerge, runLen);
-        cout << "loc 12" << endl;
-        diskLevels[0]->runs[0]->printElts();
-        diskLevels[0]->runs[1]->printElts();
-        diskLevels[1]->runs[0]->printElts();
-        diskLevels[1]->runs[1]->printElts();
         diskLevels[level - 1]->freeMergedRuns(runsToMerge);
-        cout << "loc 14" << endl;
-        diskLevels[0]->runs[0]->printElts();
-        diskLevels[0]->runs[1]->printElts();
-        diskLevels[1]->runs[0]->printElts();
-        diskLevels[1]->runs[1]->printElts();
+
 
         
     }
@@ -211,32 +203,10 @@ public:
         
         if (diskLevels[0]->levelFull()){
             mergeRunsToLevel(1);
-            diskLevels[0]->runs[0]->printElts();
-            diskLevels[0]->runs[1]->printElts();
-            diskLevels[1]->runs[0]->printElts();
-            diskLevels[1]->runs[1]->printElts();
         }
         
-        
-        if (_numDiskLevels == 2){
-            cout << "loc 10" << endl;
-        
-        diskLevels[0]->runs[0]->printElts();
-        diskLevels[0]->runs[1]->printElts();
-        diskLevels[1]->runs[0]->printElts();
-        diskLevels[1]->runs[1]->printElts();
-        }
         
         diskLevels[0]->addRunByArray(&to_merge[0], to_merge.size());
-    
-        if (_numDiskLevels == 2){
-            cout << "loc 11" << endl;
-
-        diskLevels[0]->runs[0]->printElts();
-        diskLevels[0]->runs[1]->printElts();
-        diskLevels[1]->runs[0]->printElts();
-        diskLevels[1]->runs[1]->printElts();
-        }
     
         C_0.erase(C_0.begin(), C_0.begin() + _num_to_merge);
         filters.erase(filters.begin(), filters.begin() + _num_to_merge);
@@ -250,7 +220,7 @@ public:
             BloomFilter<K> * bf = new BloomFilter<K>(_eltsPerRun, _bfFalsePositiveRate);
             filters.push_back(bf);
         }
-        cout << "finished merging- report: " << endl;
+//        cout << "finished merging- report: " << endl;
 //        printElts();
         
 

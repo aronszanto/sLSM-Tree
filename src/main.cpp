@@ -75,7 +75,7 @@ void insertLookupTest(){
     const int buffer_capacity = 10 * num_runs;
     const double bf_fp = .01;
     const int pageSize = 2;
-    const int disk_runs_per_level = 2;
+    const int disk_runs_per_level = 4;
     const double merge_fraction = .5;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
@@ -90,8 +90,7 @@ void insertLookupTest(){
     std::cout << "Starting inserts" << std::endl;
     start_insert = std::clock();
     for (int i = 0; i < num_inserts; i++) {
-        if ( i % 1 == 0 ) cout << "insert " << i << endl;
-        lsmTree.printElts();
+        if ( i % 100 == 0 ) cout << "insert " << i << endl;
         lsmTree.insert_key(to_insert[i],i);
         
     }

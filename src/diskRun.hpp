@@ -33,9 +33,10 @@
 
 
 using namespace std;
-
+template <class K, class V> class DiskLevel;
 template <class K, class V>
 class DiskRun {
+    friend class DiskLevel<K,V>;
 public:
     typedef KVPair<K,V> KVPair_t;
     
@@ -52,15 +53,16 @@ public:
     int fd;
     unsigned int pageSize;
     
-    DiskRun<K,V> (unsigned long long capacity, unsigned int pageSize, int level, int runID):_capacity(capacity),_level(level), _iMaxFP(0), pageSize(pageSize) {
+    DiskRun<K,V> (unsigned long long capacity, unsigned int pageSize, int level, int runID):_capacity(capacity),_level(level), _iMaxFP(0), pageSize(pageSize), _runID(runID) {
         
-        _filename = ("C_" + to_string(level) + "_" + to_string(runID) + ".txt").c_str();
+        _filename = "C_" + to_string(level) + "_" + to_string(runID) + ".txt";
+        cout << _filename << endl;
         
         size_t filesize = capacity * sizeof(KVPair_t);
         
         long result;
         
-        fd = open(_filename, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
+        fd = open(_filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
         if (fd == -1) {
             perror("Error opening file for writing");
             exit(EXIT_FAILURE);
@@ -96,6 +98,12 @@ public:
     }
     ~DiskRun<K,V>(){
         doUnmap();
+        cout << "removing file " << _filename << endl;
+        
+        if (remove(_filename.c_str())){
+            perror(("Error removing file " + string(_filename)).c_str());
+            exit(EXIT_FAILURE);
+        }
     }
     
     void writeData(const KVPair_t *run, const size_t offset, const unsigned long len) {
@@ -184,19 +192,26 @@ public:
         return binary_search(start, end - start, k, found).value;
     }
     
+    void printElts(){
+        for (int j = 0; j < _capacity; j++){
+            cout << map[j].key << " ";
+        }
+        cout << endl;
+    }
     
 private:
     unsigned long long _capacity;
-    const char  *_filename;
+    string _filename;
     int _level;
     vector<K> _fencePointers;
     unsigned _iMaxFP;
+    unsigned _runID;
     
     void doMap(){
         
         size_t filesize = _capacity * sizeof(KVPair_t);
         
-        fd = open(_filename, O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
+        fd = open(_filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
         if (fd == -1) {
             perror("Error opening file for writing");
             exit(EXIT_FAILURE);
@@ -212,6 +227,7 @@ private:
     }
     
     void doUnmap(){
+        cout << "filename at doUnmap: " << _filename << endl;
         size_t filesize = _capacity * sizeof(KVPair_t);
         
         if (munmap(map, filesize) == -1) {

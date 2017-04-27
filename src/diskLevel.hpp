@@ -29,6 +29,7 @@ using namespace std;
 
 template <class K, class V>
 class DiskLevel {
+    
 public: // TODO make some of these private
     int _level;
     unsigned _pageSize; // number of elements per fence pointer
@@ -62,9 +63,17 @@ public: // TODO make some of these private
     void addRuns(vector<DiskRun<K, V> *> &runList, const unsigned long runLen) {
         assert(_activeRun < _numRuns);
         assert(runLen * runList.size() == _runSize);
+        cout << "writing to  run #" << _activeRun << endl;
         
         for (int i = 0; i < runList.size(); i++){
+            cout << "writing run " << i << " with values " << endl;
+            for (int j = 0; j < runLen; j++){
+                cout << runList[i]->map[j].key << " ";
+            }
+            cout << endl;
             runs[_activeRun]->writeData(runList[i]->map, i * runLen, runLen);
+            cout << "now run " << _activeRun << " has values " << endl;
+            runs[_activeRun]->printElts();
         }
         runs[_activeRun]->writeFencePointers();
         _activeRun++;
@@ -83,19 +92,40 @@ public: // TODO make some of these private
     vector<DiskRun<K,V> *> getRunsToMerge(){
         vector<DiskRun<K, V> *> toMerge;
         for (int i = 0; i < _mergeSize; i++){
+            cout << "pushing run " << i << " onto toMerge" << endl;
             toMerge.push_back(runs[i]);
+            
         }
+        
+        cout << "values in toMerge: " << endl;
+        for (int i = 0; i < toMerge.size(); i++){
+            cout << "run " << i << endl;
+            toMerge[i]->printElts();
+        }
+        
+
         return toMerge;
         
     }
     
     void freeMergedRuns(vector<DiskRun<K,V> *> &toFree){
+        cout << "loc 15" << endl;
+        cout << "freeing " << _mergeSize << "runs" << endl;
         assert(toFree.size() == _mergeSize);
         for (int i = 0; i < _mergeSize; i++){
+            assert(toFree[i]->_level == _level);
             delete toFree[i];
         }
         runs.erase(runs.begin(), runs.begin() + _mergeSize);
         _activeRun -= _mergeSize;
+        for (int i = 0; i < _activeRun; i++){
+            cout << "renaming " << endl;
+            runs[i]->_runID = i;
+            cout << "oldname: " << runs[i]->_filename << endl;
+            const char* newName = ("C_" + to_string(runs[i]->_level) + "_" + to_string(runs[i]->_runID) + ".txt").c_str();
+            cout << "newname: " << newName << endl;
+            rename(runs[i]->_filename.c_str(), newName);
+        }
         
         for (int i = _activeRun; i < _numRuns; i++){
             DiskRun<K, V> * newRun = new DiskRun<K,V>(_runSize, _pageSize, _level, i);

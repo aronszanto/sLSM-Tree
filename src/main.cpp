@@ -69,10 +69,10 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 100;
+    const int num_inserts = 3000;
     const int max_levels = 16;
     const int num_runs = 10;
-    const int buffer_capacity = 1 * num_runs;
+    const int buffer_capacity = 10 * num_runs;
     const double bf_fp = .01;
     const int pageSize = 2;
     const int disk_runs_per_level = 2;
@@ -90,8 +90,10 @@ void insertLookupTest(){
     std::cout << "Starting inserts" << std::endl;
     start_insert = std::clock();
     for (int i = 0; i < num_inserts; i++) {
-        if ( i % 10000 == 0 ) cout << "insert " << i << endl;
+        if ( i % 1 == 0 ) cout << "insert " << i << endl;
+        lsmTree.printElts();
         lsmTree.insert_key(to_insert[i],i);
+        
     }
     
     double total_insert = (std::clock() - start_insert) / (double)(CLOCKS_PER_SEC);
@@ -99,6 +101,7 @@ void insertLookupTest(){
     std::cout << "Time: " << total_insert << " s" << std::endl;
     std::cout << "Inserts per second: " << (int) num_inserts / total_insert << " s" << std::endl;
     
+
     std::clock_t    start_lookup;
     std::cout << "Starting lookups" << std::endl;
     start_lookup = std::clock();

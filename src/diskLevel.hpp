@@ -111,8 +111,13 @@ public: // TODO make some of these private
 
             runs[i]->_runID = i;
 
-            const char* newName = ("C_" + to_string(runs[i]->_level) + "_" + to_string(runs[i]->_runID) + ".txt").c_str();
-            rename(runs[i]->_filename.c_str(), newName);
+            string newName = ("C_" + to_string(runs[i]->_level) + "_" + to_string(runs[i]->_runID) + ".txt");
+            
+            if (rename(runs[i]->_filename.c_str(), newName.c_str())){
+                perror(("Error renaming file " + runs[i]->_filename + " to " + newName).c_str());
+                exit(EXIT_FAILURE);
+            }
+            runs[i]->_filename = newName;
         }
         
         for (int i = _activeRun; i < _numRuns; i++){

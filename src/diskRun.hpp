@@ -54,7 +54,7 @@ public:
     unsigned int pageSize;
     BloomFilter<K> bf;
     
-    DiskRun<K,V> (unsigned long long capacity, unsigned int pageSize, int level, int runID):_capacity(capacity),_level(level), _iMaxFP(0), pageSize(pageSize), _runID(runID) {
+    DiskRun<K,V> (unsigned long long capacity, unsigned int pageSize, int level, int runID, double bf_fp):_capacity(capacity),_level(level), _iMaxFP(0), pageSize(pageSize), _runID(runID), _bf_fp(bf_fp), bf(capacity, bf_fp) {
         
         _filename = "C_" + to_string(level) + "_" + to_string(runID) + ".txt";
         
@@ -93,7 +93,6 @@ public:
             exit(EXIT_FAILURE);
         }
         
-        bf = BloomFilter<K>(
         
     }
     ~DiskRun<K,V>(){
@@ -110,13 +109,16 @@ public:
         memcpy(map + offset, run, len * sizeof(KVPair_t));        
         
     }
-    void writeFencePointers(){
-        // construct fence pointers
+    void writeFencePointersAndBloomFilter(){
+        // construct fence pointers and write BF
         _fencePointers.resize(0);
         _iMaxFP = -1; // TODO IS THIS SAFE?
-        for (int j = 0; j * pageSize < _capacity; j++) {
-            _fencePointers.push_back(map[j * pageSize].key);
-            _iMaxFP++;
+        for (int j = 0; j < _capacity; j++) {
+            bf.add((K*) &map[j].key, sizeof(K));
+            if (j % pageSize == 0){
+                _fencePointers.push_back(map[j].key);
+                _iMaxFP++;
+            }
         }
     }
     
@@ -205,7 +207,8 @@ private:
     vector<K> _fencePointers;
     unsigned _iMaxFP;
     unsigned _runID;
-    
+    double _bf_fp;
+                            
     void doMap(){
         
         size_t filesize = _capacity * sizeof(KVPair_t);

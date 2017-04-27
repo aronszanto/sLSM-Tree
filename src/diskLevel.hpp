@@ -47,7 +47,7 @@ public: // TODO make some of these private
         
         
         for (int i = 0; i < _numRuns; i++){
-            DiskRun<K,V> * run = new DiskRun<K, V>(_runSize, pageSize, level, i);
+            DiskRun<K,V> * run = new DiskRun<K, V>(_runSize, pageSize, level, i, _bf_fp);
             runs.push_back(run);
         }
 
@@ -75,7 +75,7 @@ public: // TODO make some of these private
 //            cout << "now run " << _activeRun << " has values " << endl;
 //            runs[_activeRun]->printElts();
         }
-        runs[_activeRun]->writeFencePointers();
+        runs[_activeRun]->writeFencePointersAndBloomFilter();
         _activeRun++;
         
     }
@@ -84,7 +84,7 @@ public: // TODO make some of these private
         assert(_activeRun < _numRuns);
         assert(runLen == _runSize);
         runs[_activeRun]->writeData(runToAdd, 0, runLen);
-        runs[_activeRun]->writeFencePointers();
+        runs[_activeRun]->writeFencePointersAndBloomFilter();
         _activeRun++;
     }
     
@@ -116,7 +116,7 @@ public: // TODO make some of these private
         }
         
         for (int i = _activeRun; i < _numRuns; i++){
-            DiskRun<K, V> * newRun = new DiskRun<K,V>(_runSize, _pageSize, _level, i);
+            DiskRun<K, V> * newRun = new DiskRun<K,V>(_runSize, _pageSize, _level, i, _bf_fp);
             runs.push_back(newRun);
         }
     }
@@ -128,9 +128,8 @@ public: // TODO make some of these private
     V lookup (K key, bool *found) {
         int maxRunToSearch = levelFull() ? _numRuns - 1 : _activeRun;
         for (int i = maxRunToSearch; i >= 0; --i){
-//            if (!filters[i]->mayContain(&key, sizeof(K)))
-//                continue;
-            // TODO PUT BFs HERE!
+            if (!runs[i]->bf.mayContain(&key, sizeof(K)))
+                continue;
             V lookupRes = runs[i]->lookup(key, found);
             if (*found) {
                 return lookupRes;

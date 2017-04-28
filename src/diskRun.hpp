@@ -54,6 +54,9 @@ public:
     unsigned int pageSize;
     BloomFilter<K> bf;
     
+    K min = INT_MIN;
+    K max = INT_MIN;
+    
     DiskRun<K,V> (unsigned long long capacity, unsigned int pageSize, int level, int runID, double bf_fp):_capacity(capacity),_level(level), _iMaxFP(0), pageSize(pageSize), _runID(runID), _bf_fp(bf_fp), bf(capacity, bf_fp) {
         
         _filename = "C_" + to_string(level) + "_" + to_string(runID) + ".txt";
@@ -109,7 +112,7 @@ public:
         memcpy(map + offset, run, len * sizeof(KVPair_t));        
         
     }
-    void writeFencePointersAndBloomFilter(){
+    void constructIndex(){
         // construct fence pointers and write BF
         _fencePointers.resize(0);
         _iMaxFP = -1; // TODO IS THIS SAFE?
@@ -120,6 +123,10 @@ public:
                 _iMaxFP++;
             }
         }
+        
+        min = map[0].key;
+        max = map[_capacity - 1].key;
+        
     }
     
     KVPair_t binary_search (const int offset, int n, KVPair_t key, bool *found) {
@@ -142,6 +149,7 @@ public:
         return (KVPair_t) {0,0}; // TODO THIS IS GROSS
     }
     V lookup(K key, bool *found){
+        
         KVPair_t k = {key, 0};
         
         unsigned long long start;

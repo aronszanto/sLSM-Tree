@@ -19,6 +19,7 @@ struct KVPair {
     
     K key;
     V value;
+    
     // bool tombstone;
     
     
@@ -44,7 +45,8 @@ struct KVPair {
     class Run {
         
     public:
-        
+        virtual K get_min() = 0;
+        virtual K get_max() = 0;
         virtual void insert_key(const K key, const V value) = 0;
         virtual void delete_key(const K key) = 0;
         virtual V lookup(K key, bool *found) = 0;

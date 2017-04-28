@@ -75,7 +75,7 @@ public: // TODO make some of these private
 //            cout << "now run " << _activeRun << " has values " << endl;
 //            runs[_activeRun]->printElts();
         }
-        runs[_activeRun]->writeFencePointersAndBloomFilter();
+        runs[_activeRun]->constructIndex();
         _activeRun++;
         
     }
@@ -84,7 +84,7 @@ public: // TODO make some of these private
         assert(_activeRun < _numRuns);
         assert(runLen == _runSize);
         runs[_activeRun]->writeData(runToAdd, 0, runLen);
-        runs[_activeRun]->writeFencePointersAndBloomFilter();
+        runs[_activeRun]->constructIndex();
         _activeRun++;
     }
     
@@ -131,10 +131,11 @@ public: // TODO make some of these private
     }
     
     V lookup (K key, bool *found) {
-        int maxRunToSearch = levelFull() ? _numRuns - 1 : _activeRun;
+        int maxRunToSearch = levelFull() ? _numRuns - 1 : _activeRun - 1;
         for (int i = maxRunToSearch; i >= 0; --i){
-            if (!runs[i]->bf.mayContain(&key, sizeof(K)))
+            if (runs[i]->max == INT_MIN || key < runs[i]-> min || key > runs[i]->max || !runs[i]->bf.mayContain(&key, sizeof(K))){
                 continue;
+            }
             V lookupRes = runs[i]->lookup(key, found);
             if (*found) {
                 return lookupRes;

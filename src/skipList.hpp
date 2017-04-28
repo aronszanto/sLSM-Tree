@@ -56,9 +56,11 @@ public:
     
     typedef SkipList_Node<K,V,MAXLEVEL> Node;
     const int max_level;
+    K min;
+    K max;
     
     SkipList(K minKey,K maxKey):p_listHead(NULL),p_listTail(NULL),
-    cur_max_level(1),max_level(MAXLEVEL),
+    cur_max_level(1),max_level(MAXLEVEL), min(NULL), max(NULL),
     _minKey(minKey),_maxKey(maxKey), _n(0)
     {
         p_listHead = new Node(_minKey);
@@ -81,7 +83,12 @@ public:
     }
     
     void insert_key(const K key,V value) {
-        //            SkipList_Node<K,V,MAXLEVEL>* update[MAXLEVEL];
+        if (key > max){
+            max = key;
+        }
+        else if (key < min){
+            min = key;
+        }
         Node* update[MAXLEVEL];
         Node* currNode = p_listHead;
         for(int level = cur_max_level; level > 0; level--) {
@@ -184,6 +191,14 @@ public:
     
     unsigned long long num_elements() {
         return _n;
+    }
+    
+    K get_min(){
+        return min;
+    }
+    
+    K get_max(){
+        return max;
     }
     
     void set_size(unsigned long size){

@@ -30,50 +30,63 @@
 
 
 using namespace std;
-template <typename T>
-struct StaticHeap {
-    int size ;
-    T* arr;
-    
-    StaticHeap(unsigned sz) {
-        size = 0;
-        arr = (T*) malloc(sz * sizeof(T));
-        memset(arr, (T) INT_MAX, sz);
-    }
-    
-    void push(T blob) {
-        unsigned i = size++;
-        while(i && blob < arr[PARENT(i)]) {
-            arr[i] = arr[PARENT(i)] ;
-            i = PARENT(i) ;
-        }
-        arr[i] = blob ;
-    }
-    void heapify(int i) {
-        T smallest = (LEFTCHILD(i) < size && arr[LEFTCHILD(i)] < arr[i]) ? LEFTCHILD(i) : i ;
-        if(RIGHTCHILD(i) < size && arr[RIGHTCHILD(i)] < arr[smallest]) {
-            smallest = RIGHTCHILD(i);
-        }
-        if(smallest != i) {
-            T temp = arr[i];
-            arr[i] = arr[smallest];
-            arr[smallest] = temp;
-            heapify(smallest) ;
-        }
-    }
-    
-    T pop() {
-        T ret = arr[0];
-        arr[0] = 1;
-        heapify(0);
-        return ret;
-    }
-};
+
 
 template <class K, class V>
 class DiskLevel {
     
 public: // TODO make some of these private
+    typedef KVPair<K,V> KVPair_t;
+    typedef pair<KVPair<K, V>, int> KVIntPair_t;
+    KVPair_t KVPAIRMAX;
+    KVIntPair_t KVINTPAIRMAX;
+    
+    struct StaticHeap {
+        int size ;
+        vector<KVIntPair_t> arr;
+        KVIntPair_t max;
+        
+        StaticHeap(unsigned sz, KVIntPair_t mx) {
+            size = 0;
+            arr = vector<KVIntPair_t>(sz, mx);
+            max = mx;
+        }
+        
+        void push(KVIntPair_t blob) {
+            unsigned i = size++;
+            while(i && blob < arr[PARENT(i)]) {
+                arr[i] = arr[PARENT(i)] ;
+                i = PARENT(i) ;
+            }
+            arr[i] = blob ;
+        }
+        void heapify(int i) {
+            int smallest = (LEFTCHILD(i) < size && arr[LEFTCHILD(i)] < arr[i]) ? LEFTCHILD(i) : i ;
+            if(RIGHTCHILD(i) < size && arr[RIGHTCHILD(i)] < arr[smallest]) {
+                smallest = RIGHTCHILD(i);
+            }
+            if(smallest != i) {
+                KVIntPair_t temp = arr[i];
+                arr[i] = arr[smallest];
+                arr[smallest] = temp;
+                heapify(smallest) ;
+            }
+        }
+        
+        KVIntPair_t pop() {
+            KVIntPair_t ret = arr[0];
+            arr[0] = arr[--size];
+            heapify(0);
+            return ret;
+        }
+    };
+
+    
+    
+    
+    
+    
+    
     int _level;
     unsigned _pageSize; // number of elements per fence pointer
     unsigned long _runSize; // number of elts in a run
@@ -83,11 +96,11 @@ public: // TODO make some of these private
     double _bf_fp; // bloom filter false positive
     vector<DiskRun<K,V> *> runs;
 
-    typedef KVPair<K,V> KVPair_t;
     
     
     DiskLevel<K,V>(unsigned int pageSize, int level, unsigned long runSize, unsigned numRuns, unsigned mergeSize, double bf_fp):_numRuns(numRuns), _runSize(runSize),_level(level), _pageSize(pageSize), _mergeSize(mergeSize), _activeRun(0), _bf_fp(bf_fp){
-        
+        KVPAIRMAX = (KVPair_t) {INT_MAX, 0};
+        KVINTPAIRMAX = KVIntPair_t(KVPAIRMAX, -1);
         
         for (int i = 0; i < _numRuns; i++){
             DiskRun<K,V> * run = new DiskRun<K, V>(_runSize, pageSize, level, i, _bf_fp);
@@ -104,20 +117,32 @@ public: // TODO make some of these private
         }
     
     void addRuns(vector<DiskRun<K, V> *> &runList, const unsigned long runLen) {
+        
         assert(_activeRun < _numRuns);
         assert(runLen * runList.size() == _runSize);
-//        cout << "writing to  run #" << _activeRun << endl;
         
+//        for (int i = 0; i < runList.size(); i++){
+//            runs[_activeRun]->writeData(runList[i]->map, i * runLen, runLen);
+//        }
+        StaticHeap h = StaticHeap(runList.size(), KVINTPAIRMAX);
+        vector<int> heads(runList.size(), 0);
         for (int i = 0; i < runList.size(); i++){
-//            cout << "writing run " << i << " with values " << endl;
-//            for (int j = 0; j < runLen; j++){
-//                cout << runList[i]->map[j].key << " ";
-//            }
-//            cout << endl;
-            runs[_activeRun]->writeData(runList[i]->map, i * runLen, runLen);
-//            cout << "now run " << _activeRun << " has values " << endl;
-//            runs[_activeRun]->printElts();
+            h.push(KVIntPair_t(runList[i]->map[0], i));
         }
+        
+        int j = 0;
+        while (h.size != 0){
+            auto val_run_pair = h.pop();
+            assert(val_run_pair != KVINTPAIRMAX);
+            runs[_activeRun]->map[j++] = val_run_pair.first;
+            unsigned k = val_run_pair.second;
+            if (++heads[k] < runLen){
+                h.push(KVIntPair_t(runList[k]->map[heads[k]], k));
+            }
+                
+        }
+        
+        
         runs[_activeRun]->constructIndex();
         _activeRun++;
         

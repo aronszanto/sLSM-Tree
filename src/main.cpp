@@ -75,7 +75,7 @@ void insertLookupTest(){
     
     const int num_inserts = 1000000;
     const int max_levels = 16;
-    const int num_runs = 30;
+    const int num_runs = 20;
     const int buffer_capacity = 500 * num_runs;
     const double bf_fp = .01;
     const int pageSize = 2048;
@@ -88,7 +88,7 @@ void insertLookupTest(){
 //        int insert = distribution(generator);
         to_insert.push_back(i);
     }
-//    shuffle(to_insert.begin(), to_insert.end(), generator);
+    shuffle(to_insert.begin(), to_insert.end(), generator);
 
     std::clock_t    start_insert;
     std::cout << "Starting inserts" << std::endl;
@@ -96,6 +96,7 @@ void insertLookupTest(){
     for (int i = 0; i < num_inserts; i++) {
 //        if ( i % 100000 == 0 ) cout << "insert " << i << endl;
         lsmTree.insert_key(to_insert[i],i);
+//        lsmTree.printElts();
         
     }
     
@@ -108,7 +109,7 @@ void insertLookupTest(){
     std::clock_t    start_lookup;
     std::cout << "Starting lookups" << std::endl;
     start_lookup = std::clock();
-//    lsmTree.printElts();
+    lsmTree.printElts();
     for (int i = 0 ; i < num_inserts; i++) {
 //        if ( i % 100000 == 0 ) cout << "lookup " << i << endl;
         
@@ -360,7 +361,7 @@ int main(){
    
 
 //    fencePointerTest();
-//    insertLookupTest();
+    insertLookupTest();
 //    updateDeleteTest();
     
     

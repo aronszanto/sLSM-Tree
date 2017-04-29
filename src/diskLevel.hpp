@@ -24,8 +24,51 @@
 #include <algorithm>
 #include "imsort.hpp"
 
+#define LEFTCHILD(x) 2 * x + 1
+#define RIGHTCHILD(x) 2 * x + 2
+#define PARENT(x) (x - 1) / 2
+
 
 using namespace std;
+template <typename T>
+struct StaticHeap {
+    int size ;
+    T* arr;
+    
+    StaticHeap(unsigned sz) {
+        size = 0;
+        arr = (T*) malloc(sz * sizeof(T));
+        memset(arr, (T) INT_MAX, sz);
+    }
+    
+    void push(T blob) {
+        unsigned i = size++;
+        while(i && blob < arr[PARENT(i)]) {
+            arr[i] = arr[PARENT(i)] ;
+            i = PARENT(i) ;
+        }
+        arr[i] = blob ;
+    }
+    void heapify(int i) {
+        T smallest = (LEFTCHILD(i) < size && arr[LEFTCHILD(i)] < arr[i]) ? LEFTCHILD(i) : i ;
+        if(RIGHTCHILD(i) < size && arr[RIGHTCHILD(i)] < arr[smallest]) {
+            smallest = RIGHTCHILD(i);
+        }
+        if(smallest != i) {
+            T temp = arr[i];
+            arr[i] = arr[smallest];
+            arr[smallest] = temp;
+            heapify(smallest) ;
+        }
+    }
+    
+    T pop() {
+        T ret = arr[0];
+        arr[0] = 1;
+        heapify(0);
+        return ret;
+    }
+};
 
 template <class K, class V>
 class DiskLevel {

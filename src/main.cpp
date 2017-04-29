@@ -364,17 +364,15 @@ int main(){
 //    fencePointerTest();
 //    insertLookupTest();
 //    updateDeleteTest();
-    auto h = HashTable<int, int>(100);
-    h.put(10, 12);
-    h.put(10,13);
-    h.put(12,20);
-    int v;
-    h.get(10, v);
+    auto h = HashTable<int, int>(10000000);
+    for (int i = 0; i< 10000000; i++){
+        h.put(i, i);
+    }
     
-    cout << v << endl;
-    h.get(12, v);
-    
-    cout << v << endl;
+    for (int i = 0; i< 10000000; i++){
+        int v;
+        h.get(i, v);
+    }
 
     
     

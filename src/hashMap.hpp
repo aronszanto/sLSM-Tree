@@ -27,9 +27,10 @@ struct HashNode
 template <typename K, typename V>
 class HashTable {
 public:
-    int _size;
-    HashTable(int size): _size(size) {
-        table = new HashNode<K, V> *[size]();
+    unsigned long _size;
+    unsigned long _elts;
+    HashTable(unsigned long size): _size(2 * size), _elts(0) {
+        table = new HashNode<K, V> *[_size]();
     }
     
     ~HashTable() {
@@ -39,48 +40,80 @@ public:
         delete [] table;
     }
     
+    void resize(){
+        _size *= 2;
+        auto newTable = new HashNode<K,V> *[_size]();
+        for (unsigned long i = 0; i < _size / 2; i++){
+            auto oldNode = table[i];
+            if (oldNode){
+                unsigned long newHash = hashFunc(oldNode->key);
+                HashNode<K, V> *newNode;
+                
+                for (int i = 0;; i++){
+                    newNode = newTable[newHash + i];
+                    if (!newNode){
+                        newTable[newHash + i] = oldNode;
+                        break;
+                    }
+                }
+
+            }
+                
+                
+                
+        }
+        delete [] table;
+        
+        table = newTable;
+        
+            
+        
+    }
+    
     bool get(const K &key, V &value) {
         unsigned long hashValue = hashFunc(key);
-        auto entry = table[hashValue];
-        
-            if (key == entry->key) {
-                value = entry->value;
+        for (int i = 0;; ++i){
+            if (!table[hashValue + i]){
+                return false;
+            }
+            else if (table[hashValue + i]->key == key){
+                value = table[hashValue + i]->value;
                 return true;
             }
+        }
 
         return false;
     }
     
     void put(const K &key, const V &value) {
-        unsigned long hashValue = hashFunc(key);
-        HashNode<K, V> *entry = table[hashValue];
-        
-        if (entry == NULL) {
-            entry = new HashNode<K, V>(key, value);
-            table[hashValue] = entry;
+        if (_elts * 2 > _size){
+            resize();
         }
-        else {
-            entry->value = value;
+        unsigned long hashValue = hashFunc(key);
+        HashNode<K, V> *node;
+        
+        for (unsigned long i = 0;; i++){
+            node = table[hashValue + i];
+            if (!node){
+                node = new HashNode<K, V>(key, value);
+                table[hashValue + i] = node;
+                ++_elts;
+                return;
+            }
+            else if (node->key == key){
+                
+                node->value = value;
+                return;
+            }
         }
     }
     
-    void remove(const K &key) {
-        unsigned long hashValue = hashFunc(key);
-        HashNode<K, V> *entry = table[hashValue];
-        
-        
-        if (!entry) {
-            return;
-        }
-        else {
-            delete entry;
-        }
-    }
     
-    int hashFunc(const K &key){
-        int res;
-        MurmurHash3_x86_32(&key, sizeof(K), 0, &res);
-        return (res % _size);
+    unsigned long hashFunc(const K key){
+        array<unsigned long, 2> hashValue;
+        
+        MurmurHash3_x64_128(&key, sizeof(K), 0, hashValue.data());
+        return  (hashValue[0] % _size);
     }
     
 private:

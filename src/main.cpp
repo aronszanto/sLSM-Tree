@@ -73,7 +73,7 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 1000000;
+    const int num_inserts = 10000000;
     const int max_levels = 16;
     const int num_runs = 20;
     const int buffer_capacity = 500 * num_runs;
@@ -109,7 +109,7 @@ void insertLookupTest(){
     std::clock_t    start_lookup;
     std::cout << "Starting lookups" << std::endl;
     start_lookup = std::clock();
-    lsmTree.printElts();
+//    lsmTree.printElts();
     for (int i = 0 ; i < num_inserts; i++) {
 //        if ( i % 100000 == 0 ) cout << "lookup " << i << endl;
         

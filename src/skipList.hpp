@@ -70,7 +70,7 @@ public:
         }
     }
     
-    virtual ~SkipList()
+    ~SkipList()
     {
         Node* currNode = p_listHead->_forward[1];
         while (currNode != p_listTail) {

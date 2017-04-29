@@ -1,3 +1,5 @@
+#pragma once
+
 //
 //  hashMap.hpp
 //  lsm-tree
@@ -5,6 +7,7 @@
 //  Created by Aron Szanto on 4/29/17.
 //  Copyright © 2017 Aron Szanto. All rights reserved.
 //
+#include "MurmurHash.h"
 
 #ifndef hashMap_h
 #define hashMap_h
@@ -21,15 +24,16 @@ struct HashNode
 };
 
 
-template <typename K, typename V, typename F = KeyHash<K>>
+template <typename K, typename V>
 class HashTable {
 public:
-    HashMap() {
-        table = new HashNode<K, V> *[TABLE_SIZE]();
+    int _size;
+    HashTable(int size): _size(size) {
+        table = new HashNode<K, V> *[size]();
     }
     
-    ~HashMap() {
-        for (int i = 0; i < TABLE_SIZE; i++) {
+    ~HashTable() {
+        for (int i = 0; i < _size; i++) {
             delete table[i];
         }
         delete [] table;
@@ -56,7 +60,7 @@ public:
             table[hashValue] = entry;
         }
         else {
-            entry->setValue(value);
+            entry->value = value;
         }
     }
     
@@ -73,9 +77,14 @@ public:
         }
     }
     
+    int hashFunc(const K &key){
+        int res;
+        MurmurHash3_x86_32(&key, sizeof(K), 0, &res);
+        return (res % _size);
+    }
+    
 private:
     HashNode<K, V> **table;
-    F hashFunc;
 };
 
 #endif /* hashMap_h */

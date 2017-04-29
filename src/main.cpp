@@ -15,6 +15,7 @@
 #include <algorithm>
 #include "skipList.hpp"
 #include "bloom.hpp"
+#include "hashMap.hpp"
 #include "lsm.hpp"
 
 #define LEFTCHILD(x) 2 * x + 1
@@ -361,8 +362,21 @@ int main(){
    
 
 //    fencePointerTest();
-    insertLookupTest();
+//    insertLookupTest();
 //    updateDeleteTest();
+    auto h = HashTable<int, int>(100);
+    h.put(10, 12);
+    h.put(10,13);
+    h.put(12,20);
+    int v;
+    h.get(10, v);
+    
+    cout << v << endl;
+    h.get(12, v);
+    
+    cout << v << endl;
+
+    
     
     
     

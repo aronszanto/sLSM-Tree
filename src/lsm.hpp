@@ -191,39 +191,20 @@ public:
     unsigned int _pageSize;
     
     void mergeRunsToLevel(int level) {
-//        cout << "loc 3" << endl;
-//        diskLevels[0]->runs[0]->printElts();
         if (level == _numDiskLevels){ // if this is the last level
-//            cout << "loc 4" << endl;
-//            diskLevels[0]->runs[0]->printElts();
-//            cout << "adding a new level: " << level << endl;
-//            cout << "new level runsize: " <<  diskLevels[level - 1]->_runSize * diskLevels[level - 1]->_mergeSize << endl;
             DiskLevel<K,V> * newLevel = new DiskLevel<K, V>(_pageSize, level + 1, diskLevels[level - 1]->_runSize * diskLevels[level - 1]->_mergeSize, _diskRunsPerLevel, ceil(_diskRunsPerLevel * _frac_runs_merged), _bfFalsePositiveRate);
-//            cout << "loc 5" << endl;
-//            diskLevels[0]->runs[0]->printElts();
             diskLevels.push_back(newLevel);
             _numDiskLevels++;
-//            cout << "loc 6" << endl;
-//            diskLevels[0]->runs[0]->printElts();
 
         }
         
         if (diskLevels[level]->levelFull()) {
-//            cout << "level " << level << " full, cascading" << endl;
             mergeRunsToLevel(level + 1); // merge down one, recursively
         }
         
 
-//        cout << "writing values from level " << (level - 1) << " to level " << level << endl;
         vector<DiskRun<K, V> *> runsToMerge = diskLevels[level - 1]->getRunsToMerge();
         unsigned long runLen = diskLevels[level - 1]->_runSize;
-//        cout << "values to write from level " << level - 1 << ": " << endl;
-//        for (int i = 0; i < runsToMerge.size(); i++){
-//            for (int j = 0; j < diskLevels[level - 1]->_runSize; j++){
-//                cout << runsToMerge[i]->map[j].key << " ";
-//            }
-//            cout << endl;
-//        }
         diskLevels[level]->addRuns(runsToMerge, runLen);
         diskLevels[level - 1]->freeMergedRuns(runsToMerge);
 
@@ -235,20 +216,16 @@ public:
         
         if (_num_to_merge == 0)
             return;
-//        cout << "going to merge " << num_to_merge << " runs" << endl;
         vector<KVPair<K, V>> to_merge = vector<KVPair<K,V>>();
         to_merge.reserve(_eltsPerRun * _num_to_merge);
         for (int i = 0; i < _num_to_merge; i++){
-//            cout << "grabbing values in and deleting run " << i << endl;
             auto all = C_0[i]->get_all();
-//            cout << "values in run " << i << endl;
             
             to_merge.insert(to_merge.begin(), all.begin(), all.end());
             delete C_0[i];
             delete filters[i];
         }
         sort(to_merge.begin(), to_merge.end());
-//        cout << "merging to disk" << endl;
         
         if (diskLevels[0]->levelFull()){
             mergeRunsToLevel(1);
@@ -269,8 +246,6 @@ public:
             BloomFilter<K> * bf = new BloomFilter<K>(_eltsPerRun, _bfFalsePositiveRate);
             filters.push_back(bf);
         }
-//        cout << "finished merging- report: " << endl;
-//        printElts();
         
 
     }

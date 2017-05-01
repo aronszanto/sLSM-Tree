@@ -11,17 +11,6 @@
 
 #ifndef hashMap_h
 #define hashMap_h
-template <typename K, typename V>
-struct HashNode
-{
-    K key;
-    V value;
-    
-    HashNode(const K &key, const V &value) :
-    key(key), value(value)
-    {
-    }
-};
 
 
 template <typename K, typename V>
@@ -29,30 +18,32 @@ class HashTable {
 public:
     unsigned long _size;
     unsigned long _elts;
+    KVPair<K,V> EMPTY = {INT_MIN, INT_MIN};
+    
     HashTable(unsigned long size): _size(2 * size), _elts(0) {
-        table = new HashNode<K, V> *[_size]();
+        table = new KVPair<K, V> [_size]();
+        fill(table + 0, table + _size, (KVPair<K,V>) EMPTY);
     }
     
     ~HashTable() {
-        for (int i = 0; i < _size; i++) {
-            delete table[i];
-        }
+//        for (int i = 0; i < _size; i++) {
+//            delete table[i];
+//        }
         delete [] table;
     }
     
     void resize(){
         _size *= 2;
-        auto newTable = new HashNode<K,V> *[_size]();
+        auto newTable = new KVPair<K,V> [_size]();
+        fill(newTable + 0, newTable + _size, (KVPair<K,V>) EMPTY);
+
         for (unsigned long i = 0; i < _size / 2; i++){
-            auto oldNode = table[i];
-            if (oldNode){
-                unsigned long newHash = hashFunc(oldNode->key);
-                HashNode<K, V> *newNode;
+            if (table[i] != EMPTY){
+                unsigned long newHash = hashFunc(table[i].key);
                 
                 for (int j = 0;; j++){
-                    newNode = newTable[(newHash + j) % _size];
-                    if (!newNode){
-                        newTable[(newHash + j) % _size] = oldNode;
+                    if (newTable[(newHash + j) % _size] == EMPTY){
+                        newTable[(newHash + j) % _size] = table[i];
                         break;
                     }
                 }
@@ -70,11 +61,11 @@ public:
     bool get(const K &key, V &value) {
         unsigned long hashValue = hashFunc(key);
         for (int i = 0;; ++i){
-            if (!table[(hashValue + i) % _size]){
+            if (table[(hashValue + i) % _size] == EMPTY){
                 return false;
             }
-            else if (table[(hashValue + i) % _size]->key == key){
-                value = table[(hashValue + i) % _size]->value;
+            else if (table[(hashValue + i) % _size].key == key){
+                value = table[(hashValue + i) % _size].value;
                 return true;
             }
         }
@@ -87,19 +78,18 @@ public:
             resize();
         }
         unsigned long hashValue = hashFunc(key);
-        HashNode<K, V> *node;
+        KVPair<K, V> node;
         
         for (unsigned long i = 0;; i++){
-            node = table[(hashValue + i) % _size];
-            if (!node){
-                node = new HashNode<K, V>(key, value);
-                table[(hashValue + i) % _size] = node;
+            if (table[(hashValue + i) % _size] == EMPTY){
+                table[(hashValue + i) % _size].key = key;
+                table[(hashValue + i) % _size].value = value;
                 ++_elts;
                 return;
             }
-            else if (node->key == key){
+            else if (table[(hashValue + i) % _size].key == key){
                 
-                node->value = value;
+                table[(hashValue + i) % _size].value = value;
                 return;
             }
         }
@@ -110,19 +100,17 @@ public:
             resize();
         }
         unsigned long hashValue = hashFunc(key);
-        HashNode<K, V> *node;
         
         for (unsigned long i = 0;; i++){
-            node = table[(hashValue + i) % _size];
-            if (!node){
-                node = new HashNode<K, V>(key, value);
-                table[(hashValue + i) % _size] = node;
+            if (table[(hashValue + i) % _size] == EMPTY){
+                table[(hashValue + i) % _size].key = key;
+                table[(hashValue + i) % _size].value = value;
                 ++_elts;
                 return NULL;
             }
-            else if (node->key == key){
+            else if (table[(hashValue + i) % _size].key == key){
                 // something already here, return current occupant to user
-                return node->value;
+                return table[(hashValue + i) % _size].value;
             }
         }
     }
@@ -136,7 +124,7 @@ public:
     }
     
 private:
-    HashNode<K, V> **table;
+    KVPair<K, V> *table;
 };
 
 #endif /* hashMap_h */

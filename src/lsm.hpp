@@ -106,7 +106,7 @@ public:
         if (key2 <= key1){
             return (vector<KVPair<K,V>> {});
         }
-        auto ht = HashTable<K, V>(1024);
+        auto ht = HashTable<K, V>(4096 * 1000);
         vector<KVPair<K,V>> eltsInRange = vector<KVPair<K,V>>();
         for (int i = _activeRun; i >= 0; --i){
             vector<KVPair<K,V>> cur_elts = C_0[i]->get_all_in_range(key1, key2);

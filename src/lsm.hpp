@@ -30,13 +30,14 @@ class LSM {
     
 public:
     V V_TOMBSTONE = (V) TOMBSTONE;
-    mutex mergeLock;
+    mutex *mergeLock;
 
     vector<Run<K,V> *> C_0;
     
     vector<BloomFilter<K> *> filters;
     vector<DiskLevel<K,V> *> diskLevels;
     
+    LSM<K,V>(const LSM<K,V> &other) = default;
     
     LSM<K,V>(unsigned long initialSize, unsigned int numRuns, double merged_frac, double bf_fp, unsigned int pageSize, unsigned int diskRunsPerLevel):_initialSize(initialSize), _num_runs(numRuns), _frac_runs_merged(merged_frac), _diskRunsPerLevel(diskRunsPerLevel), _num_to_merge(ceil(_frac_runs_merged * _num_runs)), _pageSize(pageSize){
         _activeRun = 0;
@@ -58,7 +59,10 @@ public:
             BloomFilter<K> * bf = new BloomFilter<K>(_eltsPerRun, _bfFalsePositiveRate);
             filters.push_back(bf);
         }
-        
+        mergeLock = new mutex();
+    }
+    ~LSM<K,V>(){
+        delete mergeLock;
     }
     
     void insert_key(K key, V value) {
@@ -218,24 +222,24 @@ public:
         
     }
     void merge_runs(vector<Run<K,V>*> runs_to_merge, vector<BloomFilter<K>*> bf_to_merge){
-        assert(runs_to_merge.size() == bf_to_merge.size());
         vector<KVPair<K, V>> to_merge = vector<KVPair<K,V>>();
         to_merge.reserve(_eltsPerRun * _num_to_merge);
         for (int i = 0; i < runs_to_merge.size(); i++){
-            auto all = runs_to_merge[i]->get_all();
+            auto all = (runs_to_merge)[i]->get_all();
             
             to_merge.insert(to_merge.begin(), all.begin(), all.end());
-            delete runs_to_merge[i];
-            delete bf_to_merge[i];
+            delete (runs_to_merge)[i];
+            delete (bf_to_merge)[i];
         }
         sort(to_merge.begin(), to_merge.end());
         
-        mergeLock.lock();
+        mergeLock->lock();
         if (diskLevels[0]->levelFull()){
             mergeRunsToLevel(1);
         }
         diskLevels[0]->addRunByArray(&to_merge[0], to_merge.size());
-        mergeLock.unlock();
+        mergeLock->unlock();
+        
     }
     
     void do_merge(){
@@ -247,9 +251,10 @@ public:
         for (int i = 0; i < _num_to_merge; i++){
             runs_to_merge.push_back(C_0[i]);
             bf_to_merge.push_back(filters[i]);
-            
         }
         thread mergeThread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
+        mergeThread.join();
+//        merge_runs(runs_to_merge, bf_to_merge);
         C_0.erase(C_0.begin(), C_0.begin() + _num_to_merge);
         filters.erase(filters.begin(), filters.begin() + _num_to_merge);
         
@@ -262,7 +267,6 @@ public:
             BloomFilter<K> * bf = new BloomFilter<K>(_eltsPerRun, _bfFalsePositiveRate);
             filters.push_back(bf);
         }
-        
         
     }
     

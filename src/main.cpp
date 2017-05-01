@@ -70,11 +70,11 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 1000000;
+    const int num_inserts = 5000000;
     const int max_levels = 16;
-    const int num_runs = 20;
-    const int buffer_capacity = 500 * num_runs;
-    const double bf_fp = .01;
+    const int num_runs = 30;
+    const int buffer_capacity = 5000 * num_runs;
+    const double bf_fp = .05;
     const int pageSize = 1024;
     const int disk_runs_per_level = 5;
     const double merge_fraction = 1;
@@ -111,6 +111,7 @@ void insertLookupTest(){
 //        if ( i % 100000 == 0 ) cout << "lookup " << i << endl;
         
         int lookup = lsmTree.lookup(to_insert[i]);
+//        cout << lookup << endl;
         assert(lookup == i);
 //        if (lookup != i)
 //            cout << "LOOKUP TEST FAILED ON ITERATION " << i << ". Got " << lookup << " but was expecting " << i << ".\n";
@@ -389,9 +390,9 @@ void rangeTest(){
 int main(){
 
 //    fencePointerTest();
-//    insertLookupTest();
+    insertLookupTest();
 //    updateDeleteTest();
-    rangeTest();
+//    rangeTest();
     return 0;
     
 }

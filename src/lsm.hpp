@@ -16,6 +16,8 @@
 #include <cstdio>
 #include <cstdint>
 #include <vector>
+#include <mutex>
+#include <thread>
 
 const int TOMBSTONE = INT_MIN;
 
@@ -28,10 +30,13 @@ class LSM {
     
 public:
     V V_TOMBSTONE = (V) TOMBSTONE;
+    mutex mergeLock;
+
     vector<Run<K,V> *> C_0;
     
     vector<BloomFilter<K> *> filters;
     vector<DiskLevel<K,V> *> diskLevels;
+    
     
     LSM<K,V>(unsigned long initialSize, unsigned int numRuns, double merged_frac, double bf_fp, unsigned int pageSize, unsigned int diskRunsPerLevel):_initialSize(initialSize), _num_runs(numRuns), _frac_runs_merged(merged_frac), _diskRunsPerLevel(diskRunsPerLevel), _num_to_merge(ceil(_frac_runs_merged * _num_runs)), _pageSize(pageSize){
         _activeRun = 0;
@@ -53,6 +58,7 @@ public:
             BloomFilter<K> * bf = new BloomFilter<K>(_eltsPerRun, _bfFalsePositiveRate);
             filters.push_back(bf);
         }
+        
     }
     
     void insert_key(K key, V value) {
@@ -211,25 +217,25 @@ public:
         
         
     }
-    void mergeRuns(vector<Run<K,V>*> runs_to_merge){
+    void merge_runs(vector<Run<K,V>*> runs_to_merge, vector<BloomFilter<K>*> bf_to_merge){
+        assert(runs_to_merge.size() == bf_to_merge.size());
         vector<KVPair<K, V>> to_merge = vector<KVPair<K,V>>();
         to_merge.reserve(_eltsPerRun * _num_to_merge);
         for (int i = 0; i < runs_to_merge.size(); i++){
             auto all = runs_to_merge[i]->get_all();
             
             to_merge.insert(to_merge.begin(), all.begin(), all.end());
-            delete C_0[i];
-            delete filters[i];
+            delete runs_to_merge[i];
+            delete bf_to_merge[i];
         }
         sort(to_merge.begin(), to_merge.end());
         
+        mergeLock.lock();
         if (diskLevels[0]->levelFull()){
             mergeRunsToLevel(1);
         }
-        
-        
         diskLevels[0]->addRunByArray(&to_merge[0], to_merge.size());
-
+        mergeLock.unlock();
     }
     
     void do_merge(){
@@ -237,12 +243,13 @@ public:
         if (_num_to_merge == 0)
             return;
         vector<Run<K,V>*> runs_to_merge = vector<Run<K,V>*>();
+        vector<BloomFilter<K>*> bf_to_merge = vector<BloomFilter<K>*>();
         for (int i = 0; i < _num_to_merge; i++){
             runs_to_merge.push_back(C_0[i]);
+            bf_to_merge.push_back(filters[i]);
+            
         }
-
-        mergeRuns(runs_to_merge);
-        
+        thread mergeThread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
         C_0.erase(C_0.begin(), C_0.begin() + _num_to_merge);
         filters.erase(filters.begin(), filters.begin() + _num_to_merge);
         

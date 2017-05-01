@@ -357,26 +357,32 @@ void rangeTest(){
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
 
     std::vector<int> to_insert;
+    
     for (int i = 0; i < num_inserts; i++) {
         to_insert.push_back(i);
     }
     shuffle(to_insert.begin(), to_insert.end(), generator);
-    cout << "inserting" << endl;
+
     for (int i = 0; i < num_inserts; i++) {
-        lsmTree.insert_key(to_insert[i],i);
+        lsmTree.insert_key(i, to_insert[i]);
     }
-
-//    lsmTree.printElts();
-
-    auto n1 = 1023;
-    auto n2 = 2047;
-    cout << "range query" << endl;
+    int n1 = 0;
+    int n2 = 100000;
     auto r = lsmTree.range(n1, n2);
-    cout << r.size() << endl;
-//    for (auto elt : r){
-//        cout << elt.key << " ";
-//    }
-    cout << endl;
+    assert(r.size() == (n2 - n1));
+    
+    for (int i = n1; i < n2; i++) {
+        lsmTree.insert_key(i, -1);
+    }
+    r = lsmTree.range(n1, n2);
+    assert(r.size() == (n2 - n1));
+    int nd = 50000;
+    for (int i = n1; i < n1 + nd; i++) {
+        lsmTree.delete_key(i);
+    }
+    r = lsmTree.range(n1, n2);
+    assert(r.size() == (n2 - n1 - nd));
+//    lsmTree.printElts();
 }
 
 

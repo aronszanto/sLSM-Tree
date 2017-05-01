@@ -114,9 +114,11 @@ public:
                 eltsInRange.reserve(eltsInRange.size() + cur_elts.size()); //this over-reserves to be safe
                 for (int c = 0; c < cur_elts.size(); c++){
                     V dummy;
-                    if (!ht.get(cur_elts[c].key, dummy) && dummy != V_TOMBSTONE){
+                    if (!ht.get(cur_elts[c].key, dummy)){
                         ht.put(cur_elts[c].key, cur_elts[c].value);
-                        eltsInRange.push_back(cur_elts[c]);
+                        if (dummy != V_TOMBSTONE && cur_elts[c].value != V_TOMBSTONE){
+                            eltsInRange.push_back(cur_elts[c]);
+                        }
                     }
                     
                 }
@@ -134,9 +136,12 @@ public:
                     for (unsigned long m = i1; m < i2; ++m){
                         auto KV = diskLevels[j]->runs[r]->map[m];
                         V dummy;
-                        if (!ht.get(KV.key, dummy) && dummy != V_TOMBSTONE){
+                        if (!ht.get(KV.key, dummy)){
                             ht.put(KV.key, KV.value);
-                            eltsInRange.push_back(KV);
+                            if (dummy != V_TOMBSTONE && KV.value != V_TOMBSTONE){
+                                eltsInRange.push_back(KV);
+                            }
+                            
                         }
                     }                    
                 }

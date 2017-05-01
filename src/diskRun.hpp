@@ -147,7 +147,7 @@ public:
             middle = (min + max) >> 1;
             
         }
-        return  -1;
+        return min;
     }
     
     void get_flanking_FP(K key, unsigned &start, unsigned &end){
@@ -212,26 +212,22 @@ public:
     void range(K key1, K key2, unsigned long &i1, unsigned long &i2){
         i1 = 0;
         i2 = 0;
-        if (key1 > max || key2 < min){
+        if (key1 > maxKey || key2 < minKey){
             return;
         }
-        if (key1 >= min){
+        if (key1 >= minKey){
             bool found = false;
             i1 = get_index(key1, &found);
-            i1 = found ? i1 : 0;
             
         }
-        if (key2 > max){
+        if (key2 > maxKey){
             i2 = _capacity;
             return;
         }
         else {
             bool found = false;
             i2 = get_index(key2, &found);
-            i1 = found ? i1 : 0;
         }
-        
-        
     }
     
     void printElts(){

@@ -176,9 +176,29 @@ public:
             node = node->_forward[1];
         }
         return vec;
+    }
+    
+    vector<KVPair<K,V>> get_all_in_range(K key1, K key2){
+        if (key1 > max || key2 < min){
+            return (vector<KVPair<K,V>>) {};
+        }
+        
+        vector<KVPair<K,V>> vec = vector<KVPair<K, V>>();
+        auto node = p_listHead->_forward[1];
+        while ( node->key < key1){
+            node = node->_forward[1];
+        }
+
+        while ( node->key < key2){
+            KVPair<K,V> kv = {node->key, node->value};
+            vec.push_back(kv);
+            node = node->_forward[1];
+        }
+        return vec;
         
         
     }
+
     
     bool eltIn(K key) {
         return lookup(key);

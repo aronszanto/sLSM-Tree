@@ -345,13 +345,46 @@ void updateDeleteTest(){
     }
     
 }
+void rangeTest(){
+    const int num_inserts = 1000000;
+    const int max_levels = 16;
+    const int num_runs = 20;
+    const int buffer_capacity = 500 * num_runs;
+    const double bf_fp = .01;
+    const int pageSize = 1024;
+    const int disk_runs_per_level = 10;
+    const double merge_fraction = 1;
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
+
+    std::vector<int> to_insert;
+    for (int i = 0; i < num_inserts; i++) {
+        to_insert.push_back(i);
+    }
+    shuffle(to_insert.begin(), to_insert.end(), generator);
+    cout << "inserting" << endl;
+    for (int i = 0; i < num_inserts; i++) {
+        lsmTree.insert_key(to_insert[i],i);
+    }
+
+//    lsmTree.printElts();
+
+    auto n1 = 40;
+    auto n2 = 15;
+    cout << "range query" << endl;
+    auto r = lsmTree.range(n1, n2);
+    for (auto elt : r){
+        cout << elt.key << " ";
+    }
+    cout << endl;
+}
 
 
 int main(){
 
 //    fencePointerTest();
-    insertLookupTest();
+//    insertLookupTest();
 //    updateDeleteTest();
+    rangeTest();
     return 0;
     
 }

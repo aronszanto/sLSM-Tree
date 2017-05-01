@@ -103,14 +103,41 @@ public:
     }
     
     vector<KVPair<K,V>> range(K key1, K key2){
+        if (key2 < key1){
+            return (vector<KVPair<K,V>> {});
+        }
+        vector<KVPair<K,V>> eltsInRange = vector<KVPair<K,V>>();
+        for (int i = 0; i <= _activeRun; ++i){
+            vector<KVPair<K,V>> cur_elts = C_0[i]->get_all_in_range(key1, key2);
+            if (cur_elts.size() != 0){
+                eltsInRange.reserve(eltsInRange.size() + cur_elts.size());
+                eltsInRange.insert(eltsInRange.end(), cur_elts.begin(), cur_elts.end());
+            }
+            
+        }
         
+        for (int j = 0; j < _numDiskLevels; j++){
+            for (int r = 0; r < diskLevels[j]->_activeRun; r++){
+                unsigned long i1, i2;
+                diskLevels[j]->runs[r]->range(key1, key2, i1, i2);
+                if (i2 - i1 != 0){
+                    auto oldSize = eltsInRange.size();
+                    eltsInRange.resize(oldSize + (i2 - i1));
+                    memcpy(&eltsInRange[oldSize], &diskLevels[j]->runs[r]->map[i1], (i2 - i1) * sizeof(KVPair<K,V>));
+                    
+                }
+                
+            }
+        }
+        
+        return eltsInRange;
     }
     
     
     unsigned long long num_elements(){
         unsigned long long total = 0;
         for (int i = 0; i <= _activeRun; ++i)
-            total += C_0[i]->num_elements();
+            total += C_0[i]->num_elements(); // TODO NEED TO GET DISK ELTS TOO
         return total;
     }
     

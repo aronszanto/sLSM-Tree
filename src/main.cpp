@@ -353,7 +353,7 @@ void rangeTest(){
     const double bf_fp = .01;
     const int pageSize = 1024;
     const int disk_runs_per_level = 10;
-    const double merge_fraction = 1;
+    const double merge_fraction = .5;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
 
     std::vector<int> to_insert;
@@ -372,11 +372,11 @@ void rangeTest(){
     auto n2 = 2047;
     cout << "range query" << endl;
     auto r = lsmTree.range(n1, n2);
-    cout << r.size();
+    cout << r.size() << endl;
 //    for (auto elt : r){
 //        cout << elt.key << " ";
 //    }
-//    cout << endl;
+    cout << endl;
 }
 
 

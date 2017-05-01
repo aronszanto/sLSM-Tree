@@ -108,26 +108,37 @@ public:
         }
         auto ht = HashTable<K, V>(1024);
         vector<KVPair<K,V>> eltsInRange = vector<KVPair<K,V>>();
-        for (int i = 0; i <= _activeRun; ++i){
+        for (int i = _activeRun; i >= 0; --i){
             vector<KVPair<K,V>> cur_elts = C_0[i]->get_all_in_range(key1, key2);
             if (cur_elts.size() != 0){
-                eltsInRange.reserve(eltsInRange.size() + cur_elts.size());
+                eltsInRange.reserve(eltsInRange.size() + cur_elts.size()); //this over-reserves to be safe
                 for (int c = 0; c < cur_elts.size(); c++){
-                    ht.insert(cur_elts[c].key, cur_elts[c].value);
+                    V dummy;
+                    if (!ht.get(cur_elts[c].key, dummy) && dummy != V_TOMBSTONE){
+                        ht.put(cur_elts[c].key, cur_elts[c].value);
+                        eltsInRange.push_back(cur_elts[c]);
+                    }
+                    
                 }
             }
             
         }
         
         for (int j = 0; j < _numDiskLevels; j++){
-            for (int r = 0; r < diskLevels[j]->_activeRun; r++){
+            for (int r = diskLevels[j]->_activeRun - 1; r >= 0 ; --r){
                 unsigned long i1, i2;
                 diskLevels[j]->runs[r]->range(key1, key2, i1, i2);
                 if (i2 - i1 != 0){
                     auto oldSize = eltsInRange.size();
-                    eltsInRange.resize(oldSize + (i2 - i1));
-                    memcpy(&eltsInRange[oldSize], &diskLevels[j]->runs[r]->map[i1], (i2 - i1) * sizeof(KVPair<K,V>));
-                    
+                    eltsInRange.reserve(oldSize + (i2 - i1)); // also over-reserve space
+                    for (unsigned long m = i1; m < i2; ++m){
+                        auto KV = diskLevels[j]->runs[r]->map[m];
+                        V dummy;
+                        if (!ht.get(KV.key, dummy) && dummy != V_TOMBSTONE){
+                            ht.put(KV.key, KV.value);
+                            eltsInRange.push_back(KV);
+                        }
+                    }                    
                 }
                 
             }

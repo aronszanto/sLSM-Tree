@@ -57,7 +57,7 @@ public:
                     }
                 }
 
-            }   
+            }
         }
         delete [] table;
         

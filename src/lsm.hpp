@@ -211,15 +211,11 @@ public:
         
         
     }
-    
-    void do_merge(){
-        
-        if (_num_to_merge == 0)
-            return;
+    void mergeRuns(vector<Run<K,V>*> runs_to_merge){
         vector<KVPair<K, V>> to_merge = vector<KVPair<K,V>>();
         to_merge.reserve(_eltsPerRun * _num_to_merge);
-        for (int i = 0; i < _num_to_merge; i++){
-            auto all = C_0[i]->get_all();
+        for (int i = 0; i < runs_to_merge.size(); i++){
+            auto all = runs_to_merge[i]->get_all();
             
             to_merge.insert(to_merge.begin(), all.begin(), all.end());
             delete C_0[i];
@@ -233,6 +229,19 @@ public:
         
         
         diskLevels[0]->addRunByArray(&to_merge[0], to_merge.size());
+
+    }
+    
+    void do_merge(){
+        
+        if (_num_to_merge == 0)
+            return;
+        vector<Run<K,V>*> runs_to_merge = vector<Run<K,V>*>();
+        for (int i = 0; i < _num_to_merge; i++){
+            runs_to_merge.push_back(C_0[i]);
+        }
+
+        mergeRuns(runs_to_merge);
         
         C_0.erase(C_0.begin(), C_0.begin() + _num_to_merge);
         filters.erase(filters.begin(), filters.begin() + _num_to_merge);

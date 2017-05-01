@@ -38,7 +38,7 @@ public:
         
         array<uint64_t, 2> hashValue;
         
-        MurmurHash3_x64_128(data, len, 0, hashValue.data());
+        MurmurHash3_x64_128(data, (int) len, 0, hashValue.data());
         
         return hashValue;
     }

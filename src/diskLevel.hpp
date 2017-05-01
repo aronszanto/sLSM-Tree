@@ -119,7 +119,7 @@ public: // TODO make some of these private
         
         assert(_activeRun < _numRuns);
         assert(runLen * runList.size() == _runSize);
-        StaticHeap h = StaticHeap(runList.size(), KVINTPAIRMAX);
+        StaticHeap h = StaticHeap((int) runList.size(), KVINTPAIRMAX);
         vector<int> heads(runList.size(), 0);
         for (int i = 0; i < runList.size(); i++){
             h.push(KVIntPair_t(runList[i]->map[0], i));

@@ -49,18 +49,15 @@ public:
                 unsigned long newHash = hashFunc(oldNode->key);
                 HashNode<K, V> *newNode;
                 
-                for (int i = 0;; i++){
-                    newNode = newTable[newHash + i];
+                for (int j = 0;; j++){
+                    newNode = newTable[(newHash + j) % _size];
                     if (!newNode){
-                        newTable[newHash + i] = oldNode;
+                        newTable[(newHash + j) % _size] = oldNode;
                         break;
                     }
                 }
 
-            }
-                
-                
-                
+            }   
         }
         delete [] table;
         
@@ -73,11 +70,11 @@ public:
     bool get(const K &key, V &value) {
         unsigned long hashValue = hashFunc(key);
         for (int i = 0;; ++i){
-            if (!table[hashValue + i]){
+            if (!table[(hashValue + i) % _size]){
                 return false;
             }
-            else if (table[hashValue + i]->key == key){
-                value = table[hashValue + i]->value;
+            else if (table[(hashValue + i) % _size]->key == key){
+                value = table[(hashValue + i) % _size]->value;
                 return true;
             }
         }
@@ -93,10 +90,10 @@ public:
         HashNode<K, V> *node;
         
         for (unsigned long i = 0;; i++){
-            node = table[hashValue + i];
+            node = table[(hashValue + i) % _size];
             if (!node){
                 node = new HashNode<K, V>(key, value);
-                table[hashValue + i] = node;
+                table[(hashValue + i) % _size] = node;
                 ++_elts;
                 return;
             }

@@ -106,12 +106,15 @@ public:
         if (key2 <= key1){
             return (vector<KVPair<K,V>> {});
         }
+        auto ht = HashTable<K, V>(1024);
         vector<KVPair<K,V>> eltsInRange = vector<KVPair<K,V>>();
         for (int i = 0; i <= _activeRun; ++i){
             vector<KVPair<K,V>> cur_elts = C_0[i]->get_all_in_range(key1, key2);
             if (cur_elts.size() != 0){
                 eltsInRange.reserve(eltsInRange.size() + cur_elts.size());
-                eltsInRange.insert(eltsInRange.end(), cur_elts.begin(), cur_elts.end());
+                for (int c = 0; c < cur_elts.size(); c++){
+                    ht.insert(cur_elts[c].key, cur_elts[c].value);
+                }
             }
             
         }

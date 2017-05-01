@@ -22,7 +22,6 @@
 #include <sys/mman.h>
 #include <cassert>
 #include <algorithm>
-#include "imsort.hpp"
 
 #define LEFTCHILD(x) 2 * x + 1
 #define RIGHTCHILD(x) 2 * x + 2
@@ -120,10 +119,6 @@ public: // TODO make some of these private
         
         assert(_activeRun < _numRuns);
         assert(runLen * runList.size() == _runSize);
-        
-//        for (int i = 0; i < runList.size(); i++){
-//            runs[_activeRun]->writeData(runList[i]->map, i * runLen, runLen);
-//        }
         StaticHeap h = StaticHeap(runList.size(), KVINTPAIRMAX);
         vector<int> heads(runList.size(), 0);
         for (int i = 0; i < runList.size(); i++){
@@ -201,7 +196,7 @@ public: // TODO make some of these private
     V lookup (K key, bool *found) {
         int maxRunToSearch = levelFull() ? _numRuns - 1 : _activeRun - 1;
         for (int i = maxRunToSearch; i >= 0; --i){
-            if (runs[i]->max == INT_MIN || key < runs[i]-> min || key > runs[i]->max || !runs[i]->bf.mayContain(&key, sizeof(K))){
+            if (runs[i]->maxKey == INT_MIN || key < runs[i]->minKey || key > runs[i]->maxKey || !runs[i]->bf.mayContain(&key, sizeof(K))){
                 continue;
             }
             V lookupRes = runs[i]->lookup(key, found);

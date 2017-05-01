@@ -29,7 +29,6 @@
 #include <sys/mman.h>
 #include <cassert>
 #include <algorithm>
-#include "imsort.hpp"
 
 
 using namespace std;
@@ -54,8 +53,8 @@ public:
     unsigned int pageSize;
     BloomFilter<K> bf;
     
-    K min = INT_MIN;
-    K max = INT_MIN;
+    K minKey = INT_MIN;
+    K maxKey = INT_MIN;
     
     DiskRun<K,V> (unsigned long long capacity, unsigned int pageSize, int level, int runID, double bf_fp):_capacity(capacity),_level(level), _iMaxFP(0), pageSize(pageSize), _runID(runID), _bf_fp(bf_fp), bf(capacity, bf_fp) {
         
@@ -124,37 +123,34 @@ public:
             }
         }
         
-        min = map[0].key;
-        max = map[_capacity - 1].key;
+        minKey = map[0].key;
+        maxKey = map[_capacity - 1].key;
         
     }
     
-    KVPair_t binary_search (const int offset, int n, KVPair_t key, bool *found) {
-        
-        
-        int min = offset, max = offset + n - 1;
-        int middle = (min + max) >> 1;
+    unsigned long binary_search (const unsigned long offset, unsigned long n, K key, bool *found) {
+        if (n == 0){
+            *found = true;
+            return offset;
+        }
+        unsigned long min = offset, max = offset + n - 1;
+        unsigned long middle = (min + max) >> 1;
         while (min <= max) {
-            if (key > map[middle])
+            if (key > map[middle].key)
                 min = middle + 1;
-            else if (key.key == map[middle].key) {
+            else if (key == map[middle].key) {
                 *found = true;
-                return map[middle];
+                return middle;
             }
             else
                 max = middle - 1;
             middle = (min + max) >> 1;
             
         }
-        return (KVPair_t) {0,0}; // TODO THIS IS GROSS
+        return  -1;
     }
-    V lookup(K key, bool *found){
-        
-        KVPair_t k = {key, 0};
-        
-        unsigned long long start;
-        int end;
-        
+    
+    void get_flanking_FP(K key, unsigned &start, unsigned &end){
         if (_iMaxFP == 0) {
             start = 0;
             end = _capacity;
@@ -176,7 +172,7 @@ public:
                     if (key < _fencePointers[middle + 1]){
                         start = middle * pageSize;
                         end = (middle + 1) * pageSize;
-                        break; // TODO THIS IS ALSO GROSS
+                        return; // TODO THIS IS ALSO GROSS
                     }
                     min = middle + 1;
                 }
@@ -184,21 +180,58 @@ public:
                     if (key >= _fencePointers[middle - 1]){
                         start = (middle - 1) * pageSize;
                         end = middle * pageSize;
-                        break; // TODO THIS IS ALSO GROSS. THIS WILL BREAK IF YOU DON'T KEEP TRACK OF MIN AND MAX.
+                        return; // TODO THIS IS ALSO GROSS. THIS WILL BREAK IF YOU DON'T KEEP TRACK OF MIN AND MAX.
                     }
                     
                     max = middle - 1;
                 }
                 
                 else {
-                    *found = true;
-                    return map[middle * pageSize].value;
+                    start = middle * pageSize;
+                    end = start;
+                    return;
                 }
                 
             }
+
+        }
+    }
+    
+    unsigned long get_index(K key, bool *found){
+        unsigned  start, end;
+        get_flanking_FP(key, start, end);
+        return binary_search(start, end - start, key, found);
+    }
+    
+     V lookup(K key, bool *found){
+         unsigned long idx = get_index(key, found);
+         V ret = map[idx].value;
+         return *found ? ret : NULL;
+     }
+    
+    void range(K key1, K key2, unsigned long &i1, unsigned long &i2){
+        i1 = 0;
+        i2 = 0;
+        if (key1 > max || key2 < min){
+            return;
+        }
+        if (key1 >= min){
+            bool found = false;
+            i1 = get_index(key1, &found);
+            i1 = found ? i1 : 0;
+            
+        }
+        if (key2 > max){
+            i2 = _capacity;
+            return;
+        }
+        else {
+            bool found = false;
+            i2 = get_index(key2, &found);
+            i1 = found ? i1 : 0;
         }
         
-        return binary_search(start, end - start, k, found).value;
+        
     }
     
     void printElts(){

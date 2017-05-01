@@ -87,7 +87,7 @@ public:
             }
         }
         // it's not in C_0 so let's look at disk.
-        for (int i = _numDiskLevels - 1; i >= 0; --i){
+        for (int i = 0; i < _numDiskLevels; i++){
             
             V lookupRes = diskLevels[i]->lookup(key, &found);
             if (found) {
@@ -100,6 +100,9 @@ public:
     
     void delete_key(K key){
         insert_key(key, V_TOMBSTONE);
+    }
+    
+    vector<KVPair<K,V>> range(K key1, K key2){
         
     }
     

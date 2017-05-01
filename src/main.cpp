@@ -18,10 +18,6 @@
 #include "hashMap.hpp"
 #include "lsm.hpp"
 
-#define LEFTCHILD(x) 2 * x + 1
-#define RIGHTCHILD(x) 2 * x + 2
-#define PARENT(x) (x - 1) / 2
-
 
 using namespace std;
 
@@ -74,13 +70,13 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 10000000;
+    const int num_inserts = 1000000;
     const int max_levels = 16;
     const int num_runs = 20;
     const int buffer_capacity = 500 * num_runs;
     const double bf_fp = .01;
-    const int pageSize = 2048;
-    const int disk_runs_per_level = 10;
+    const int pageSize = 1024;
+    const int disk_runs_per_level = 5;
     const double merge_fraction = 1;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
@@ -89,7 +85,7 @@ void insertLookupTest(){
 //        int insert = distribution(generator);
         to_insert.push_back(i);
     }
-    shuffle(to_insert.begin(), to_insert.end(), generator);
+//    shuffle(to_insert.begin(), to_insert.end(), generator);
 
     std::clock_t    start_insert;
     std::cout << "Starting inserts" << std::endl;
@@ -348,44 +344,14 @@ void updateDeleteTest(){
         assert(!lsmTree.lookup(i));
     }
     
-    
-    
-    
-    
-
-    
-    
 }
 
 
 int main(){
-   
 
 //    fencePointerTest();
-//    insertLookupTest();
+    insertLookupTest();
 //    updateDeleteTest();
-    auto h = HashTable<int, int>(10000000);
-    for (int i = 0; i< 10000000; i++){
-        h.put(i, i);
-    }
-    
-    for (int i = 0; i< 10000000; i++){
-        int v;
-        h.get(i, v);
-    }
-
-    
-    
-    
-    
-
-    
-   
-
-    
-    
-
-
     return 0;
     
 }

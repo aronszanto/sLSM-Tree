@@ -348,7 +348,7 @@ void updateDeleteTest(){
 void rangeTest(){
     const int num_inserts = 1000000;
     const int max_levels = 16;
-    const int num_runs = 20;
+    const int num_runs = 40;
     const int buffer_capacity = 500 * num_runs;
     const double bf_fp = .01;
     const int pageSize = 1024;
@@ -367,7 +367,7 @@ void rangeTest(){
         lsmTree.insert_key(i, to_insert[i]);
     }
     int n1 = 0;
-    int n2 = 100000;
+    int n2 = 500000;
     auto r = lsmTree.range(n1, n2);
     assert(r.size() == (n2 - n1));
     
@@ -376,7 +376,7 @@ void rangeTest(){
     }
     r = lsmTree.range(n1, n2);
     assert(r.size() == (n2 - n1));
-    int nd = 50000;
+    int nd = 300000;
     for (int i = n1; i < n1 + nd; i++) {
         lsmTree.delete_key(i);
     }

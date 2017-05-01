@@ -113,12 +113,9 @@ public:
             if (cur_elts.size() != 0){
                 eltsInRange.reserve(eltsInRange.size() + cur_elts.size()); //this over-reserves to be safe
                 for (int c = 0; c < cur_elts.size(); c++){
-                    V dummy;
-                    if (!ht.get(cur_elts[c].key, dummy)){
-                        ht.put(cur_elts[c].key, cur_elts[c].value);
-                        if (dummy != V_TOMBSTONE && cur_elts[c].value != V_TOMBSTONE){
-                            eltsInRange.push_back(cur_elts[c]);
-                        }
+                    V dummy = ht.putIfEmpty(cur_elts[c].key, cur_elts[c].value);
+                    if (!dummy && cur_elts[c].value != V_TOMBSTONE){
+                        eltsInRange.push_back(cur_elts[c]);
                     }
                     
                 }
@@ -135,17 +132,12 @@ public:
                     eltsInRange.reserve(oldSize + (i2 - i1)); // also over-reserve space
                     for (unsigned long m = i1; m < i2; ++m){
                         auto KV = diskLevels[j]->runs[r]->map[m];
-                        V dummy;
-                        if (!ht.get(KV.key, dummy)){
-                            ht.put(KV.key, KV.value);
-                            if (dummy != V_TOMBSTONE && KV.value != V_TOMBSTONE){
-                                eltsInRange.push_back(KV);
-                            }
-                            
+                        V dummy = ht.putIfEmpty(KV.key, KV.value);
+                        if (!dummy && KV.value != V_TOMBSTONE) {
+                            eltsInRange.push_back(KV);
                         }
-                    }                    
+                    }
                 }
-                
             }
         }
         

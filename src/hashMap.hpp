@@ -105,6 +105,28 @@ public:
         }
     }
     
+    V putIfEmpty(const K &key, const V &value) {
+        if (_elts * 2 > _size){
+            resize();
+        }
+        unsigned long hashValue = hashFunc(key);
+        HashNode<K, V> *node;
+        
+        for (unsigned long i = 0;; i++){
+            node = table[(hashValue + i) % _size];
+            if (!node){
+                node = new HashNode<K, V>(key, value);
+                table[(hashValue + i) % _size] = node;
+                ++_elts;
+                return NULL;
+            }
+            else if (node->key == key){
+                // something already here, return current occupant to user
+                return node->value;
+            }
+        }
+    }
+    
     
     unsigned long hashFunc(const K key){
         array<unsigned long, 2> hashValue;

@@ -368,14 +368,15 @@ void rangeTest(){
 
 //    lsmTree.printElts();
 
-    auto n1 = 40;
-    auto n2 = 15;
+    auto n1 = 1023;
+    auto n2 = 2047;
     cout << "range query" << endl;
     auto r = lsmTree.range(n1, n2);
-    for (auto elt : r){
-        cout << elt.key << " ";
-    }
-    cout << endl;
+    cout << r.size();
+//    for (auto elt : r){
+//        cout << elt.key << " ";
+//    }
+//    cout << endl;
 }
 
 

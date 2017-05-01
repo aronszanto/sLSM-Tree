@@ -103,7 +103,7 @@ public:
     }
     
     vector<KVPair<K,V>> range(K key1, K key2){
-        if (key2 < key1){
+        if (key2 <= key1){
             return (vector<KVPair<K,V>> {});
         }
         vector<KVPair<K,V>> eltsInRange = vector<KVPair<K,V>>();

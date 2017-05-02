@@ -99,7 +99,7 @@ public:
         // it's not in C_0 so let's look at disk.
         for (int i = 0; i < _numDiskLevels; i++){
             
-            V lookupRes = diskLevels[i]->lookup(key, &found);
+            V lookupRes = diskLevels[i]->lookup(key, &found, mergeLock);
             if (found) {
                 return lookupRes == V_TOMBSTONE ? (V) NULL : lookupRes;
             }
@@ -136,7 +136,7 @@ public:
         for (int j = 0; j < _numDiskLevels; j++){
             for (int r = diskLevels[j]->_activeRun - 1; r >= 0 ; --r){
                 unsigned long i1, i2;
-                diskLevels[j]->runs[r]->range(key1, key2, i1, i2);
+                diskLevels[j]->runs[r]->range(key1, key2, i1, i2, mergeLock);
                 if (i2 - i1 != 0){
                     auto oldSize = eltsInRange.size();
                     eltsInRange.reserve(oldSize + (i2 - i1)); // also over-reserve space
@@ -252,9 +252,9 @@ public:
             runs_to_merge.push_back(C_0[i]);
             bf_to_merge.push_back(filters[i]);
         }
-//        thread mergeThread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
-//        mergeThread.join();
-        merge_runs(runs_to_merge, bf_to_merge);
+        thread mergeThread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
+        mergeThread.detach();
+//        merge_runs(runs_to_merge, bf_to_merge);
         C_0.erase(C_0.begin(), C_0.begin() + _num_to_merge);
         filters.erase(filters.begin(), filters.begin() + _num_to_merge);
         

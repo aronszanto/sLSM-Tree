@@ -70,14 +70,14 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 1000000;
+    const int num_inserts = 5000000;
     const int max_levels = 16;
-    const int num_runs = 30;
+    const int num_runs = 10;
     const int buffer_capacity = 700 * num_runs;
     const double bf_fp = .05;
     const int pageSize = 1024;
-    const int disk_runs_per_level = 5;
-    const double merge_fraction = 1;
+    const int disk_runs_per_level = 25;
+    const double merge_fraction = .8;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
     std::vector<int> to_insert;

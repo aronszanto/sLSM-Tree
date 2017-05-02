@@ -206,7 +206,7 @@ public: // TODO make some of these private
             
         }
         
-        return NULL;
+        return (V) NULL;
         
     }
 };

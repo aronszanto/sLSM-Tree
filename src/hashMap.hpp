@@ -106,7 +106,7 @@ public:
                 table[(hashValue + i) % _size].key = key;
                 table[(hashValue + i) % _size].value = value;
                 ++_elts;
-                return NULL;
+                return (V) NULL;
             }
             else if (table[(hashValue + i) % _size].key == key){
                 // something already here, return current occupant to user

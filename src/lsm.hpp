@@ -93,7 +93,7 @@ public:
             
             V lookupRes = C_0[i]->lookup(key, &found);
             if (found) {
-                return lookupRes == V_TOMBSTONE ? NULL : lookupRes;
+                return lookupRes == V_TOMBSTONE ? (V) NULL : lookupRes;
             }
         }
         // it's not in C_0 so let's look at disk.
@@ -101,11 +101,11 @@ public:
             
             V lookupRes = diskLevels[i]->lookup(key, &found);
             if (found) {
-                return lookupRes == V_TOMBSTONE ? NULL : lookupRes;
+                return lookupRes == V_TOMBSTONE ? (V) NULL : lookupRes;
             }
         }
         
-        return NULL;
+        return (V) NULL;
     }
     
     void delete_key(K key){
@@ -252,9 +252,9 @@ public:
             runs_to_merge.push_back(C_0[i]);
             bf_to_merge.push_back(filters[i]);
         }
-        thread mergeThread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
-        mergeThread.join();
-//        merge_runs(runs_to_merge, bf_to_merge);
+//        thread mergeThread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
+//        mergeThread.join();
+        merge_runs(runs_to_merge, bf_to_merge);
         C_0.erase(C_0.begin(), C_0.begin() + _num_to_merge);
         filters.erase(filters.begin(), filters.begin() + _num_to_merge);
         

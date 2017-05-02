@@ -206,7 +206,7 @@ public:
      V lookup(K key, bool *found){
          unsigned long idx = get_index(key, found);
          V ret = map[idx].value;
-         return *found ? ret : NULL;
+         return *found ? ret : (V) NULL;
      }
     
     void range(K key1, K key2, unsigned long &i1, unsigned long &i2){

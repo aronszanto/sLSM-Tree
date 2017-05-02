@@ -70,10 +70,10 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 5000000;
+    const int num_inserts = 1000000;
     const int max_levels = 16;
     const int num_runs = 30;
-    const int buffer_capacity = 5000 * num_runs;
+    const int buffer_capacity = 700 * num_runs;
     const double bf_fp = .05;
     const int pageSize = 1024;
     const int disk_runs_per_level = 5;
@@ -347,14 +347,14 @@ void updateDeleteTest(){
     
 }
 void rangeTest(){
-    const int num_inserts = 1000000;
+    const int num_inserts = 5000000;
     const int max_levels = 16;
-    const int num_runs = 40;
+    const int num_runs = 10;
     const int buffer_capacity = 500 * num_runs;
     const double bf_fp = .01;
     const int pageSize = 1024;
-    const int disk_runs_per_level = 10;
-    const double merge_fraction = .5;
+    const int disk_runs_per_level = 4;
+    const double merge_fraction = .7;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
 
     std::vector<int> to_insert;
@@ -368,7 +368,7 @@ void rangeTest(){
         lsmTree.insert_key(i, to_insert[i]);
     }
     int n1 = 0;
-    int n2 = 500000;
+    int n2 = 2000000;
     auto r = lsmTree.range(n1, n2);
     assert(r.size() == (n2 - n1));
     
@@ -377,7 +377,7 @@ void rangeTest(){
     }
     r = lsmTree.range(n1, n2);
     assert(r.size() == (n2 - n1));
-    int nd = 300000;
+    int nd = 1000000;
     for (int i = n1; i < n1 + nd; i++) {
         lsmTree.delete_key(i);
     }
@@ -389,7 +389,6 @@ void rangeTest(){
 
 int main(){
 
-//    fencePointerTest();
     insertLookupTest();
 //    updateDeleteTest();
 //    rangeTest();

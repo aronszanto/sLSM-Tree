@@ -101,17 +101,18 @@ public:
                 return lookupRes == V_TOMBSTONE ? (V) NULL : lookupRes;
             }
         }
-//        mergeLock->lock();
+        if (mergeThread.joinable()){
+            // make sure that there isn't a merge happening as you search the disk
+            mergeThread.join();
+        }
         // it's not in C_0 so let's look at disk.
         for (int i = 0; i < _numDiskLevels; i++){
             
             V lookupRes = diskLevels[i]->lookup(key, &found);
             if (found) {
-                mergeLock->unlock();
                 return lookupRes == V_TOMBSTONE ? (V) NULL : lookupRes;
             }
         }
-//        mergeLock->unlock();
         return (V) NULL;
     }
     
@@ -138,6 +139,11 @@ public:
                 }
             }
             
+        }
+        
+        if (mergeThread.joinable()){
+            // make sure that there isn't a merge happening as you search the disk
+            mergeThread.join();
         }
         
         for (int j = 0; j < _numDiskLevels; j++){

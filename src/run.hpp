@@ -57,6 +57,7 @@ struct KVPair {
         virtual void set_size(const unsigned long size) = 0;
         virtual vector<KVPair<K,V>> get_all() = 0;
         virtual vector<KVPair<K,V>> get_all_in_range(K key1, K key2) = 0;
+        virtual ~Run() { }
     };
     
     

@@ -16,8 +16,8 @@
 #include <cstdio>
 #include <cstdint>
 #include <vector>
-
-const int TOMBSTONE = INT_MIN;
+#include <mutex>
+#include <thread>
 
 template <class K, class V>
 class LSM {
@@ -28,10 +28,14 @@ class LSM {
     
 public:
     V V_TOMBSTONE = (V) TOMBSTONE;
+    mutex *mergeLock;
+
     vector<Run<K,V> *> C_0;
     
     vector<BloomFilter<K> *> filters;
     vector<DiskLevel<K,V> *> diskLevels;
+    
+    LSM<K,V>(const LSM<K,V> &other) = default;
     
     LSM<K,V>(unsigned long initialSize, unsigned int numRuns, double merged_frac, double bf_fp, unsigned int pageSize, unsigned int diskRunsPerLevel):_initialSize(initialSize), _num_runs(numRuns), _frac_runs_merged(merged_frac), _diskRunsPerLevel(diskRunsPerLevel), _num_to_merge(ceil(_frac_runs_merged * _num_runs)), _pageSize(pageSize){
         _activeRun = 0;
@@ -40,7 +44,7 @@ public:
         
         
         DiskLevel<K,V> * diskLevel = new DiskLevel<K, V>(pageSize, 1, _num_to_merge * _eltsPerRun, _diskRunsPerLevel, ceil(_diskRunsPerLevel * _frac_runs_merged), _bfFalsePositiveRate);
-
+        
         diskLevels.push_back(diskLevel);
         _numDiskLevels = 1;
         
@@ -53,21 +57,25 @@ public:
             BloomFilter<K> * bf = new BloomFilter<K>(_eltsPerRun, _bfFalsePositiveRate);
             filters.push_back(bf);
         }
+        mergeLock = new mutex();
+    }
+    ~LSM<K,V>(){
+        delete mergeLock;
     }
     
     void insert_key(K key, V value) {
-//        cout << "inserting key " << key << endl;
+        //        cout << "inserting key " << key << endl;
         if (C_0[_activeRun]->num_elements() >= _eltsPerRun){
-//            cout << "run " << _activeRun << " full, moving to next" << endl;
+            //            cout << "run " << _activeRun << " full, moving to next" << endl;
             ++_activeRun;
         }
         
         if (_activeRun >= _num_runs){
-//            cout << "need to merge" << endl;
+            //            cout << "need to merge" << endl;
             do_merge();
         }
         
-//        cout << "inserting key " << key << " to run " << _activeRun << endl;
+        //        cout << "inserting key " << key << " to run " << _activeRun << endl;
         C_0[_activeRun]->insert_key(key,value);
         filters[_activeRun]->add(&key, sizeof(K));
     }
@@ -75,27 +83,27 @@ public:
     V lookup(K key){
         bool found = false;
         // TODO keep track of min/max in runs?
-//        cout << "looking for key " << key << endl;
+        //        cout << "looking for key " << key << endl;
         for (int i = _activeRun; i >= 0; --i){
-//            cout << "... in run/filter " << i << endl;
+            //            cout << "... in run/filter " << i << endl;
             if (key < C_0[i]->get_min() || key > C_0[i]->get_max() || !filters[i]->mayContain(&key, sizeof(K)))
                 continue;
             
             V lookupRes = C_0[i]->lookup(key, &found);
             if (found) {
-                return lookupRes == V_TOMBSTONE ? NULL : lookupRes;
+                return lookupRes == V_TOMBSTONE ? (V) NULL : lookupRes;
             }
         }
         // it's not in C_0 so let's look at disk.
         for (int i = 0; i < _numDiskLevels; i++){
             
-            V lookupRes = diskLevels[i]->lookup(key, &found);
+            V lookupRes = diskLevels[i]->lookup(key, &found, mergeLock);
             if (found) {
-                return lookupRes == V_TOMBSTONE ? NULL : lookupRes;
+                return lookupRes == V_TOMBSTONE ? (V) NULL : lookupRes;
             }
         }
-
-        return NULL;
+        
+        return (V) NULL;
     }
     
     void delete_key(K key){
@@ -126,7 +134,7 @@ public:
         for (int j = 0; j < _numDiskLevels; j++){
             for (int r = diskLevels[j]->_activeRun - 1; r >= 0 ; --r){
                 unsigned long i1, i2;
-                diskLevels[j]->runs[r]->range(key1, key2, i1, i2);
+                diskLevels[j]->runs[r]->range(key1, key2, i1, i2, mergeLock);
                 if (i2 - i1 != 0){
                     auto oldSize = eltsInRange.size();
                     eltsInRange.reserve(oldSize + (i2 - i1)); // also over-reserve space
@@ -153,16 +161,16 @@ public:
     }
     
     void printElts(){
-        cout << "MEMORY BUFFER" << endl;
-        for (int i = 0; i <= _activeRun; i++){
-            cout << "MEMORY BUFFER RUN " << i << endl;
-            auto all = C_0[i]->get_all();
-            for (KVPair<K, V> &c : all) {
-                cout << c.key << " ";
-            }
-            cout << endl;
-
-        }
+//        cout << "MEMORY BUFFER" << endl;
+//        for (int i = 0; i <= _activeRun; i++){
+//            cout << "MEMORY BUFFER RUN " << i << endl;
+//            auto all = C_0[i]->get_all();
+//            for (KVPair<K, V> &c : all) {
+//                cout << c.key << ":" << c.value << " ";
+//            }
+//            cout << endl;
+//            
+//        }
         
         cout << "\nDISK BUFFER" << endl;
         for (int i = 0; i < _numDiskLevels; i++){
@@ -170,7 +178,7 @@ public:
             for (int j = 0; j < _diskRunsPerLevel; j++){
                 cout << "RUN " << j << endl;
                 for (int k = 0; k < diskLevels[i]->_runSize; k++){
-                    cout << diskLevels[i]->runs[j]->map[k].key << " ";
+                    cout << diskLevels[i]->runs[j]->map[k].key << ":" << diskLevels[i]->runs[j]->map[k].value << " ";
                 }
                 cout << endl;
             }
@@ -178,7 +186,7 @@ public:
         }
     }
     
-//private: // TODO MAKE PRIVATE
+    //private: // TODO MAKE PRIVATE
     unsigned long _initialSize;
     unsigned int _activeRun;
     unsigned long _eltsPerRun;
@@ -191,75 +199,75 @@ public:
     unsigned int _pageSize;
     
     void mergeRunsToLevel(int level) {
-//        cout << "loc 3" << endl;
-//        diskLevels[0]->runs[0]->printElts();
+        bool isLast = false;
+        
         if (level == _numDiskLevels){ // if this is the last level
-//            cout << "loc 4" << endl;
-//            diskLevels[0]->runs[0]->printElts();
-//            cout << "adding a new level: " << level << endl;
-//            cout << "new level runsize: " <<  diskLevels[level - 1]->_runSize * diskLevels[level - 1]->_mergeSize << endl;
             DiskLevel<K,V> * newLevel = new DiskLevel<K, V>(_pageSize, level + 1, diskLevels[level - 1]->_runSize * diskLevels[level - 1]->_mergeSize, _diskRunsPerLevel, ceil(_diskRunsPerLevel * _frac_runs_merged), _bfFalsePositiveRate);
-//            cout << "loc 5" << endl;
-//            diskLevels[0]->runs[0]->printElts();
             diskLevels.push_back(newLevel);
             _numDiskLevels++;
-//            cout << "loc 6" << endl;
-//            diskLevels[0]->runs[0]->printElts();
-
         }
         
         if (diskLevels[level]->levelFull()) {
-//            cout << "level " << level << " full, cascading" << endl;
             mergeRunsToLevel(level + 1); // merge down one, recursively
         }
         
-
-//        cout << "writing values from level " << (level - 1) << " to level " << level << endl;
+        if(level + 1 == _numDiskLevels && diskLevels[level]->levelEmpty()){
+            cout << "LAST LEVEL" << endl;
+            printElts();
+            isLast = true;
+        }
+        
+        
         vector<DiskRun<K, V> *> runsToMerge = diskLevels[level - 1]->getRunsToMerge();
         unsigned long runLen = diskLevels[level - 1]->_runSize;
-//        cout << "values to write from level " << level - 1 << ": " << endl;
-//        for (int i = 0; i < runsToMerge.size(); i++){
-//            for (int j = 0; j < diskLevels[level - 1]->_runSize; j++){
-//                cout << runsToMerge[i]->map[j].key << " ";
-//            }
-//            cout << endl;
-//        }
-        diskLevels[level]->addRuns(runsToMerge, runLen);
+        diskLevels[level]->addRuns(runsToMerge, runLen, isLast);
         diskLevels[level - 1]->freeMergedRuns(runsToMerge);
+        
+        printElts();
 
-
+        
+        
+        
+    }
+    void merge_runs(vector<Run<K,V>*> runs_to_merge, vector<BloomFilter<K>*> bf_to_merge){
+        vector<KVPair<K, V>> to_merge = vector<KVPair<K,V>>();
+        to_merge.reserve(_eltsPerRun * _num_to_merge);
+        for (int i = 0; i < runs_to_merge.size(); i++){
+            auto all = (runs_to_merge)[i]->get_all();
+            
+            to_merge.insert(to_merge.begin(), all.begin(), all.end());
+            delete (runs_to_merge)[i];
+            delete (bf_to_merge)[i];
+        }
+        sort(to_merge.begin(), to_merge.end());
+//        cout << "thread " << pthread_self() << " trying to lock mergeLock" << endl;
+//        mergeLock->lock();
+//        cout << "thread " << pthread_self() << " merging to disk" << endl;
+        if (diskLevels[0]->levelFull()){
+            mergeRunsToLevel(1);
+        }
+        diskLevels[0]->addRunByArray(&to_merge[0], to_merge.size());
+//        cout << "thread " << pthread_self() << " unlocking" << endl;
+//        mergeLock->unlock();
         
     }
     
     void do_merge(){
-        
         if (_num_to_merge == 0)
             return;
-//        cout << "going to merge " << num_to_merge << " runs" << endl;
-        vector<KVPair<K, V>> to_merge = vector<KVPair<K,V>>();
-        to_merge.reserve(_eltsPerRun * _num_to_merge);
+        vector<Run<K,V>*> runs_to_merge = vector<Run<K,V>*>();
+        vector<BloomFilter<K>*> bf_to_merge = vector<BloomFilter<K>*>();
         for (int i = 0; i < _num_to_merge; i++){
-//            cout << "grabbing values in and deleting run " << i << endl;
-            auto all = C_0[i]->get_all();
-//            cout << "values in run " << i << endl;
-            
-            to_merge.insert(to_merge.begin(), all.begin(), all.end());
-            delete C_0[i];
-            delete filters[i];
+            runs_to_merge.push_back(C_0[i]);
+            bf_to_merge.push_back(filters[i]);
         }
-        sort(to_merge.begin(), to_merge.end());
-//        cout << "merging to disk" << endl;
-        
-        if (diskLevels[0]->levelFull()){
-            mergeRunsToLevel(1);
-        }
-        
-        
-        diskLevels[0]->addRunByArray(&to_merge[0], to_merge.size());
-    
+//        cout << "main thread want to merge to disk" << endl;
+//        thread mergeThread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
+//        mergeThread.detach();
+        merge_runs(runs_to_merge, bf_to_merge);
         C_0.erase(C_0.begin(), C_0.begin() + _num_to_merge);
         filters.erase(filters.begin(), filters.begin() + _num_to_merge);
-
+        
         _activeRun -= _num_to_merge;
         for (int i = _activeRun; i < _num_runs; i++){
             RunType * run = new RunType(INT32_MIN,INT32_MAX);
@@ -269,12 +277,10 @@ public:
             BloomFilter<K> * bf = new BloomFilter<K>(_eltsPerRun, _bfFalsePositiveRate);
             filters.push_back(bf);
         }
-//        cout << "finished merging- report: " << endl;
-//        printElts();
-        
-
+        printElts();
     }
     
+
 };
 
 

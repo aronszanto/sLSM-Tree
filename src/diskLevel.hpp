@@ -27,6 +27,7 @@
 #define RIGHTCHILD(x) 2 * x + 2
 #define PARENT(x) (x - 1) / 2
 
+int TOMBSTONE = INT_MIN;
 
 using namespace std;
 
@@ -39,7 +40,8 @@ public: // TODO make some of these private
     typedef pair<KVPair<K, V>, int> KVIntPair_t;
     KVPair_t KVPAIRMAX;
     KVIntPair_t KVINTPAIRMAX;
-    
+    V V_TOMBSTONE = (V) TOMBSTONE;
+
     struct StaticHeap {
         int size ;
         vector<KVIntPair_t> arr;
@@ -115,31 +117,53 @@ public: // TODO make some of these private
     ~DiskLevel<K,V>(){
         }
     
-    void addRuns(vector<DiskRun<K, V> *> &runList, const unsigned long runLen) {
+    void addRuns(vector<DiskRun<K, V> *> &runList, const unsigned long runLen, bool lastLevel) {
         
-        assert(_activeRun < _numRuns);
-        assert(runLen * runList.size() == _runSize);
-        StaticHeap h = StaticHeap(runList.size(), KVINTPAIRMAX);
+
+        StaticHeap h = StaticHeap((int) runList.size(), KVINTPAIRMAX);
         vector<int> heads(runList.size(), 0);
         for (int i = 0; i < runList.size(); i++){
-            h.push(KVIntPair_t(runList[i]->map[0], i));
+            KVPair_t kvp = runList[i]->map[0];
+            h.push(KVIntPair_t(kvp, i));
         }
         
-        int j = 0;
+        int j = -1;
+        K lastKey = INT_MAX;
+        unsigned lastk = INT_MIN;
         while (h.size != 0){
             auto val_run_pair = h.pop();
-            assert(val_run_pair != KVINTPAIRMAX);
-            runs[_activeRun]->map[j++] = val_run_pair.first;
+            assert(val_run_pair != KVINTPAIRMAX); // TODO delete asserts
+            if (lastKey == val_run_pair.first.key){
+                if( lastk < val_run_pair.second){
+                    runs[_activeRun]->map[j] = val_run_pair.first;
+                }
+            }
+            else {
+                if (!lastLevel || runs[_activeRun]->map[j].value != V_TOMBSTONE){
+                    ++j;
+                }
+                runs[_activeRun]->map[j] = val_run_pair.first;
+            }
+            
+            lastKey = val_run_pair.first.key;
+            lastk = val_run_pair.second;
+            
             unsigned k = val_run_pair.second;
-            if (++heads[k] < runLen){
-                h.push(KVIntPair_t(runList[k]->map[heads[k]], k));
+            if (++heads[k] < runList[k]->getCapacity()){
+                KVPair_t kvp = runList[k]->map[heads[k]];
+                h.push(KVIntPair_t(kvp, k));
             }
                 
         }
         
-        
+        if (runs[_activeRun]->map[j].value == V_TOMBSTONE){
+            --j;
+        }
+        runs[_activeRun]->setCapacity(j + 1);
         runs[_activeRun]->constructIndex();
-        _activeRun++;
+        if(j + 1 > 0){
+            ++_activeRun;
+        }
         
     }
     
@@ -192,21 +216,24 @@ public: // TODO make some of these private
     bool levelFull(){
         return (_activeRun == _numRuns);
     }
+    bool levelEmpty(){
+        return (_activeRun == 0);
+    }
     
-    V lookup (K key, bool *found) {
+    V lookup (K key, bool *found, mutex *mergeLock) {
         int maxRunToSearch = levelFull() ? _numRuns - 1 : _activeRun - 1;
         for (int i = maxRunToSearch; i >= 0; --i){
             if (runs[i]->maxKey == INT_MIN || key < runs[i]->minKey || key > runs[i]->maxKey || !runs[i]->bf.mayContain(&key, sizeof(K))){
                 continue;
             }
-            V lookupRes = runs[i]->lookup(key, found);
+            V lookupRes = runs[i]->lookup(key, found, mergeLock);
             if (*found) {
                 return lookupRes;
             }
             
         }
         
-        return NULL;
+        return (V) NULL;
         
     }
 };

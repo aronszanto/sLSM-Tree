@@ -60,7 +60,7 @@ public:
     K max;
     
     SkipList(K minKey,K maxKey):p_listHead(NULL),p_listTail(NULL),
-    cur_max_level(1),max_level(MAXLEVEL), min(NULL), max(NULL),
+    cur_max_level(1),max_level(MAXLEVEL), min((K) NULL), max((K) NULL),
     _minKey(minKey),_maxKey(maxKey), _n(0)
     {
         p_listHead = new Node(_minKey);
@@ -162,7 +162,7 @@ public:
             return currNode->value;
         }
         else {
-            return NULL;
+            return (V) NULL;
         }
     }
     

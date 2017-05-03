@@ -38,6 +38,7 @@ class DiskRun {
     friend class DiskLevel<K,V>;
 public:
     typedef KVPair<K,V> KVPair_t;
+
     
     static int compareKVs (const void * a, const void * b)
     {
@@ -105,10 +106,16 @@ public:
             exit(EXIT_FAILURE);
         }
     }
-    
+    void setCapacity(unsigned long long newCap){
+        _capacity = newCap;
+    }
+    unsigned long long getCapacity(){
+        return _capacity;
+    }
     void writeData(const KVPair_t *run, const size_t offset, const unsigned long len) {
         
-        memcpy(map + offset, run, len * sizeof(KVPair_t));        
+        memcpy(map + offset, run, len * sizeof(KVPair_t));
+        _capacity = len;
         
     }
     void constructIndex(){
@@ -197,19 +204,22 @@ public:
         }
     }
     
-    unsigned long get_index(K key, bool *found){
+    unsigned long get_index(K key, bool *found, mutex *mergeLock){
         unsigned  start, end;
         get_flanking_FP(key, start, end);
-        return binary_search(start, end - start, key, found);
+        mergeLock->lock();
+        V ret = binary_search(start, end - start, key, found);
+        mergeLock->unlock();
+        return ret;
     }
     
-     V lookup(K key, bool *found){
-         unsigned long idx = get_index(key, found);
+     V lookup(K key, bool *found, mutex *mergeLock){
+         unsigned long idx = get_index(key, found, mergeLock);
          V ret = map[idx].value;
-         return *found ? ret : NULL;
+         return *found ? ret : (V) NULL;
      }
     
-    void range(K key1, K key2, unsigned long &i1, unsigned long &i2){
+    void range(K key1, K key2, unsigned long &i1, unsigned long &i2, mutex *mergeLock){
         i1 = 0;
         i2 = 0;
         if (key1 > maxKey || key2 < minKey){
@@ -217,7 +227,7 @@ public:
         }
         if (key1 >= minKey){
             bool found = false;
-            i1 = get_index(key1, &found);
+            i1 = get_index(key1, &found, mergeLock);
             
         }
         if (key2 > maxKey){
@@ -226,7 +236,7 @@ public:
         }
         else {
             bool found = false;
-            i2 = get_index(key2, &found);
+            i2 = get_index(key2, &found, mergeLock);
         }
     }
     
@@ -267,6 +277,8 @@ private:
     
     void doUnmap(){
         size_t filesize = _capacity * sizeof(KVPair_t);
+        cout << "unmap called on file " << _filename << " with filesize " << filesize << endl;
+
         
         if (munmap(map, filesize) == -1) {
             perror("Error un-mmapping the file");

@@ -18,9 +18,9 @@
 #define diskRun_h
 #include <vector>
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include "run.hpp"
-#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>

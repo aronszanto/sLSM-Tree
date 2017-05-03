@@ -12,6 +12,7 @@
 #include <vector>
 #include <cstdint>
 #include <string>
+#include <cstring>
 #include "run.hpp"
 #include "diskRun.hpp"
 #include <stdio.h>

@@ -16,6 +16,7 @@
 #include "diskLevel.hpp"
 #include <cstdio>
 #include <cstdint>
+#include <cstring>
 #include <stdlib.h>
 #include <vector>
 #include <mutex>

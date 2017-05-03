@@ -14,6 +14,7 @@
 #include "bloom.hpp"
 #include "diskLevel.hpp"
 #include <cstdio>
+#define __STDC_LIMIT_MACROS
 #include <cstdint>
 #include <vector>
 #include <mutex>

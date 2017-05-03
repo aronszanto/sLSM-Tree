@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <ctime>
 #include <iostream>
+#include <cstdint>
 #include <math.h>
 #include <random>
 #include <algorithm>
@@ -455,10 +456,10 @@ void concurrentLookupTest(){
 }
 int main(){
 
-//    insertLookupTest();
+    insertLookupTest();
 //    updateDeleteTest();
 //    rangeTest();
-    concurrentLookupTest();
+//    concurrentLookupTest();
     return 0;
     
 }

@@ -8,6 +8,9 @@
 //  Copyright © 2017 Aron Szanto. All rights reserved.
 //
 #include "MurmurHash.h"
+#include <stdlib.h>
+#include <cstdint>
+#include <climits>
 
 #ifndef hashMap_h
 #define hashMap_h

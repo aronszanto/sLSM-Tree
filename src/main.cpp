@@ -70,13 +70,13 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 5000000;
+    const int num_inserts = 50000000;
     const int max_levels = 16;
-    const int num_runs = 10;
-    const int buffer_capacity = 700 * num_runs;
-    const double bf_fp = .05;
-    const int pageSize = 1024;
-    const int disk_runs_per_level = 25;
+    const int num_runs = 30;
+    const int buffer_capacity = 3000 * num_runs;
+    const double bf_fp = .005;
+    const int pageSize = 512;
+    const int disk_runs_per_level = 20;
     const double merge_fraction = .8;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
@@ -85,13 +85,13 @@ void insertLookupTest(){
 //        int insert = distribution(generator);
         to_insert.push_back(i);
     }
-//    shuffle(to_insert.begin(), to_insert.end(), generator);
+    shuffle(to_insert.begin(), to_insert.end(), generator);
 
     std::clock_t    start_insert;
     std::cout << "Starting inserts" << std::endl;
     start_insert = std::clock();
     for (int i = 0; i < num_inserts; i++) {
-//        if ( i % 100000 == 0 ) cout << "insert " << i << endl;
+        if ( i % 100000 == 0 ) cout << "insert " << i << endl;
         lsmTree.insert_key(to_insert[i],i);
 //        lsmTree.printElts();
         
@@ -108,7 +108,7 @@ void insertLookupTest(){
     start_lookup = std::clock();
 //    lsmTree.printElts();
     for (int i = 0 ; i < num_inserts; i++) {
-//        if ( i % 100000 == 0 ) cout << "lookup " << i << endl;
+        if ( i % 100000 == 0 ) cout << "lookup " << i << endl;
         
         int lookup = lsmTree.lookup(to_insert[i]);
 //        cout << lookup << endl;
@@ -302,14 +302,14 @@ void fencePointerTest(){
 }
 
 void updateDeleteTest(){
-    const int num_inserts = 100;
+    const int num_inserts = 100000;
     const int max_levels = 16;
-    const int num_runs = 1;
-    const int buffer_capacity = num_inserts;
-    const double bf_fp = .001;
-    const int pageSize = 512;
-    const int disk_runs_per_level = 10;
-    const double merge_fraction = .8;
+    const int num_runs = 20;
+    const int buffer_capacity = 500 * num_runs;
+    const double bf_fp = .01;
+    const int pageSize = 1024;
+    const int disk_runs_per_level = 5;
+    const double merge_fraction = .5;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
     std::vector<int> to_insert;
@@ -349,8 +349,8 @@ void updateDeleteTest(){
 void rangeTest(){
     const int num_inserts = 5000000;
     const int max_levels = 16;
-    const int num_runs = 10;
-    const int buffer_capacity = 500 * num_runs;
+    const int num_runs = 20;
+    const int buffer_capacity = 2000 * num_runs;
     const double bf_fp = .01;
     const int pageSize = 1024;
     const int disk_runs_per_level = 4;

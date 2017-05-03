@@ -232,18 +232,19 @@ public:
             delete (bf_to_merge)[i];
         }
         sort(to_merge.begin(), to_merge.end());
-        
+//        cout << "thread " << pthread_self() << " trying to lock mergeLock" << endl;
         mergeLock->lock();
+//        cout << "thread " << pthread_self() << " merging to disk" << endl;
         if (diskLevels[0]->levelFull()){
             mergeRunsToLevel(1);
         }
         diskLevels[0]->addRunByArray(&to_merge[0], to_merge.size());
+//        cout << "thread " << pthread_self() << " unlocking" << endl;
         mergeLock->unlock();
         
     }
     
     void do_merge(){
-        
         if (_num_to_merge == 0)
             return;
         vector<Run<K,V>*> runs_to_merge = vector<Run<K,V>*>();
@@ -252,6 +253,7 @@ public:
             runs_to_merge.push_back(C_0[i]);
             bf_to_merge.push_back(filters[i]);
         }
+//        cout << "main thread want to merge to disk" << endl;
         thread mergeThread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
         mergeThread.detach();
 //        merge_runs(runs_to_merge, bf_to_merge);

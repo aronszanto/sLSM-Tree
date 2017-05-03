@@ -19,6 +19,7 @@
 #include <vector>
 #include <cstdint>
 #include <string>
+#include <cstring>
 #include "run.hpp"
 #include <stdio.h>
 #include <stdlib.h>

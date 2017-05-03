@@ -32,7 +32,9 @@
 
 
 using namespace std;
+
 template <class K, class V> class DiskLevel;
+
 template <class K, class V>
 class DiskRun {
     friend class DiskLevel<K,V>;
@@ -114,7 +116,7 @@ public:
     }
     void writeData(const KVPair_t *run, const size_t offset, const unsigned long len) {
         
-        memcpy(map + offset, run, len * sizeof(KVPair_t));
+        std::memcpy(map + offset, run, len * sizeof(KVPair_t));
         _capacity = len;
         
     }

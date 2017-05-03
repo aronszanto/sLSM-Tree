@@ -117,7 +117,7 @@ public:
     }
     void writeData(const KVPair_t *run, const size_t offset, const unsigned long len) {
         
-        std::memcpy(map + offset, run, len * sizeof(KVPair_t));
+        memcpy(map + offset, run, len * sizeof(KVPair_t));
         _capacity = len;
         
     }

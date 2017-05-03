@@ -19,8 +19,6 @@
 #include <mutex>
 #include <thread>
 
-const int TOMBSTONE = INT_MIN;
-
 template <class K, class V>
 class LSM {
     
@@ -163,16 +161,16 @@ public:
     }
     
     void printElts(){
-        cout << "MEMORY BUFFER" << endl;
-        for (int i = 0; i <= _activeRun; i++){
-            cout << "MEMORY BUFFER RUN " << i << endl;
-            auto all = C_0[i]->get_all();
-            for (KVPair<K, V> &c : all) {
-                cout << c.key << " ";
-            }
-            cout << endl;
-            
-        }
+//        cout << "MEMORY BUFFER" << endl;
+//        for (int i = 0; i <= _activeRun; i++){
+//            cout << "MEMORY BUFFER RUN " << i << endl;
+//            auto all = C_0[i]->get_all();
+//            for (KVPair<K, V> &c : all) {
+//                cout << c.key << ":" << c.value << " ";
+//            }
+//            cout << endl;
+//            
+//        }
         
         cout << "\nDISK BUFFER" << endl;
         for (int i = 0; i < _numDiskLevels; i++){
@@ -180,7 +178,7 @@ public:
             for (int j = 0; j < _diskRunsPerLevel; j++){
                 cout << "RUN " << j << endl;
                 for (int k = 0; k < diskLevels[i]->_runSize; k++){
-                    cout << diskLevels[i]->runs[j]->map[k].key << " ";
+                    cout << diskLevels[i]->runs[j]->map[k].key << ":" << diskLevels[i]->runs[j]->map[k].value << " ";
                 }
                 cout << endl;
             }
@@ -201,22 +199,30 @@ public:
     unsigned int _pageSize;
     
     void mergeRunsToLevel(int level) {
+        bool isLast = false;
+        
         if (level == _numDiskLevels){ // if this is the last level
             DiskLevel<K,V> * newLevel = new DiskLevel<K, V>(_pageSize, level + 1, diskLevels[level - 1]->_runSize * diskLevels[level - 1]->_mergeSize, _diskRunsPerLevel, ceil(_diskRunsPerLevel * _frac_runs_merged), _bfFalsePositiveRate);
             diskLevels.push_back(newLevel);
             _numDiskLevels++;
-            
         }
         
         if (diskLevels[level]->levelFull()) {
             mergeRunsToLevel(level + 1); // merge down one, recursively
         }
         
+        if(level + 1 == _numDiskLevels && diskLevels[level]->levelEmpty()){
+            isLast = true;
+        }
+        
         
         vector<DiskRun<K, V> *> runsToMerge = diskLevels[level - 1]->getRunsToMerge();
         unsigned long runLen = diskLevels[level - 1]->_runSize;
-        diskLevels[level]->addRuns(runsToMerge, runLen);
+        diskLevels[level]->addRuns(runsToMerge, runLen, isLast);
         diskLevels[level - 1]->freeMergedRuns(runsToMerge);
+        
+        printElts();
+
         
         
         
@@ -233,14 +239,14 @@ public:
         }
         sort(to_merge.begin(), to_merge.end());
 //        cout << "thread " << pthread_self() << " trying to lock mergeLock" << endl;
-        mergeLock->lock();
+//        mergeLock->lock();
 //        cout << "thread " << pthread_self() << " merging to disk" << endl;
         if (diskLevels[0]->levelFull()){
             mergeRunsToLevel(1);
         }
         diskLevels[0]->addRunByArray(&to_merge[0], to_merge.size());
 //        cout << "thread " << pthread_self() << " unlocking" << endl;
-        mergeLock->unlock();
+//        mergeLock->unlock();
         
     }
     
@@ -254,9 +260,9 @@ public:
             bf_to_merge.push_back(filters[i]);
         }
 //        cout << "main thread want to merge to disk" << endl;
-        thread mergeThread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
-        mergeThread.detach();
-//        merge_runs(runs_to_merge, bf_to_merge);
+//        thread mergeThread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
+//        mergeThread.detach();
+        merge_runs(runs_to_merge, bf_to_merge);
         C_0.erase(C_0.begin(), C_0.begin() + _num_to_merge);
         filters.erase(filters.begin(), filters.begin() + _num_to_merge);
         
@@ -269,9 +275,10 @@ public:
             BloomFilter<K> * bf = new BloomFilter<K>(_eltsPerRun, _bfFalsePositiveRate);
             filters.push_back(bf);
         }
-        
+        printElts();
     }
     
+
 };
 
 

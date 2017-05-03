@@ -38,6 +38,7 @@ class DiskRun {
     friend class DiskLevel<K,V>;
 public:
     typedef KVPair<K,V> KVPair_t;
+
     
     static int compareKVs (const void * a, const void * b)
     {
@@ -105,10 +106,16 @@ public:
             exit(EXIT_FAILURE);
         }
     }
-    
+    void setCapacity(unsigned long long newCap){
+        _capacity = newCap;
+    }
+    unsigned long long getCapacity(){
+        return _capacity;
+    }
     void writeData(const KVPair_t *run, const size_t offset, const unsigned long len) {
         
-        memcpy(map + offset, run, len * sizeof(KVPair_t));        
+        memcpy(map + offset, run, len * sizeof(KVPair_t));
+        _capacity = len;
         
     }
     void constructIndex(){
@@ -270,6 +277,8 @@ private:
     
     void doUnmap(){
         size_t filesize = _capacity * sizeof(KVPair_t);
+        cout << "unmap called on file " << _filename << " with filesize " << filesize << endl;
+
         
         if (munmap(map, filesize) == -1) {
             perror("Error un-mmapping the file");

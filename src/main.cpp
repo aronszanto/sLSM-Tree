@@ -302,14 +302,14 @@ void fencePointerTest(){
 }
 
 void updateDeleteTest(){
-    const int num_inserts = 100000;
+    const int num_inserts = 50;
     const int max_levels = 16;
-    const int num_runs = 20;
-    const int buffer_capacity = 500 * num_runs;
+    const int num_runs = 1;
+    const int buffer_capacity = 5 * num_runs;
     const double bf_fp = .01;
     const int pageSize = 1024;
-    const int disk_runs_per_level = 5;
-    const double merge_fraction = .5;
+    const int disk_runs_per_level = 2;
+    const double merge_fraction = 1;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
     std::vector<int> to_insert;
@@ -336,13 +336,20 @@ void updateDeleteTest(){
     for (int i = 0; i < num_inserts; i++) {
         assert(to_insert[i] == lsmTree.lookup(i));
     }
-    
+    lsmTree.printElts();
+
     for (int i = 0; i < num_inserts; i++) {
         lsmTree.delete_key(i);
+
     }
-    
+   
     for (int i = 0; i < num_inserts; i++) {
-        assert(!lsmTree.lookup(i));
+        lsmTree.insert_key(i, to_insert[i]);
+    }
+    lsmTree.printElts();
+    for (int i = 0; i < num_inserts; i++) {
+        auto l = lsmTree.lookup(i);
+        assert(!l);
     }
     
 }
@@ -389,8 +396,8 @@ void rangeTest(){
 
 int main(){
 
-    insertLookupTest();
-//    updateDeleteTest();
+//    insertLookupTest();
+    updateDeleteTest();
 //    rangeTest();
     return 0;
     

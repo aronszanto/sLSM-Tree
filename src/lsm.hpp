@@ -5,6 +5,7 @@
 //  Created by Aron Szanto on 3/3/17.
 //  Copyright © 2017 Aron Szanto. All rights reserved.
 //
+#pragma once
 
 #ifndef LSM_H
 #define LSM_H

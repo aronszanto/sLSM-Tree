@@ -5,6 +5,7 @@
 //  Created by Aron Szanto on 3/2/17.
 //  Copyright © 2017 Aron Szanto. All rights reserved.
 //
+#pragma once
 
 #ifndef SKIPLIST_H
 #define SKIPLIST_H

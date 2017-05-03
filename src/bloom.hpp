@@ -5,6 +5,7 @@
 //  Created by Aron Szanto on 3/14/17.
 //  Copyright © 2017 Aron Szanto. All rights reserved.
 //
+#pragma once
 
 #ifndef bloom_h
 #define bloom_h

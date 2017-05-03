@@ -13,7 +13,7 @@
 //  Created by Aron Szanto on 3/20/17.
 //  Copyright © 2017 Aron Szanto. All rights reserved.
 //
-
+#pragma once
 #ifndef diskRun_h
 #define diskRun_h
 #include <vector>

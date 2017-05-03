@@ -212,6 +212,8 @@ public:
         }
         
         if(level + 1 == _numDiskLevels && diskLevels[level]->levelEmpty()){
+            cout << "LAST LEVEL" << endl;
+            printElts();
             isLast = true;
         }
         

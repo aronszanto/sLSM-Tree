@@ -124,12 +124,10 @@ public: // TODO make some of these private
         vector<int> heads(runList.size(), 0);
         for (int i = 0; i < runList.size(); i++){
             KVPair_t kvp = runList[i]->map[0];
-            if (!lastLevel || kvp.value != V_TOMBSTONE){
-                h.push(KVIntPair_t(kvp, i));
-            }
+            h.push(KVIntPair_t(kvp, i));
         }
         
-        int j = 0;
+        int j = -1;
         K lastKey = INT_MAX;
         unsigned lastk = INT_MIN;
         while (h.size != 0){
@@ -158,9 +156,12 @@ public: // TODO make some of these private
                 
         }
         
-        runs[_activeRun]->setCapacity(j);
+        if (runs[_activeRun]->map[j].value == V_TOMBSTONE){
+            --j;
+        }
+        runs[_activeRun]->setCapacity(j + 1);
         runs[_activeRun]->constructIndex();
-        if(j > 0){
+        if(j + 1 > 0){
             ++_activeRun;
         }
         

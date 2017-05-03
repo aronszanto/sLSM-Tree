@@ -343,13 +343,13 @@ void updateDeleteTest(){
 
     }
    
-    for (int i = 0; i < num_inserts; i++) {
-        lsmTree.insert_key(i, to_insert[i]);
+    for (int i = 0; i < num_inserts * 10; i++) {
+        lsmTree.insert_key(i, -1);
     }
     lsmTree.printElts();
-    for (int i = 0; i < num_inserts; i++) {
+    for (int i = 0; i < num_inserts * 10; i++) {
         auto l = lsmTree.lookup(i);
-        assert(!l);
+        assert(l == -1);
     }
     
 }

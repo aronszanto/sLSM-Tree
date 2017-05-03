@@ -11,6 +11,7 @@
 #define SKIPLIST_H
 #include <cstdint>
 #include <cstdlib>
+#include <strings.h>
 #include <random>
 #include <vector>
 #include <string>

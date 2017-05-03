@@ -161,16 +161,16 @@ public:
     }
     
     void printElts(){
-//        cout << "MEMORY BUFFER" << endl;
-//        for (int i = 0; i <= _activeRun; i++){
-//            cout << "MEMORY BUFFER RUN " << i << endl;
-//            auto all = C_0[i]->get_all();
-//            for (KVPair<K, V> &c : all) {
-//                cout << c.key << ":" << c.value << " ";
-//            }
-//            cout << endl;
-//            
-//        }
+        cout << "MEMORY BUFFER" << endl;
+        for (int i = 0; i <= _activeRun; i++){
+            cout << "MEMORY BUFFER RUN " << i << endl;
+            auto all = C_0[i]->get_all();
+            for (KVPair<K, V> &c : all) {
+                cout << c.key << ":" << c.value << " ";
+            }
+            cout << endl;
+            
+        }
         
         cout << "\nDISK BUFFER" << endl;
         for (int i = 0; i < _numDiskLevels; i++){
@@ -212,8 +212,6 @@ public:
         }
         
         if(level + 1 == _numDiskLevels && diskLevels[level]->levelEmpty()){
-            cout << "LAST LEVEL" << endl;
-            printElts();
             isLast = true;
         }
         
@@ -223,7 +221,6 @@ public:
         diskLevels[level]->addRuns(runsToMerge, runLen, isLast);
         diskLevels[level - 1]->freeMergedRuns(runsToMerge);
         
-        printElts();
 
         
         
@@ -277,7 +274,6 @@ public:
             BloomFilter<K> * bf = new BloomFilter<K>(_eltsPerRun, _bfFalsePositiveRate);
             filters.push_back(bf);
         }
-        printElts();
     }
     
 

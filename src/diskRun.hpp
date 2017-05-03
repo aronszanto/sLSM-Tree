@@ -277,7 +277,6 @@ private:
     
     void doUnmap(){
         size_t filesize = _capacity * sizeof(KVPair_t);
-        cout << "unmap called on file " << _filename << " with filesize " << filesize << endl;
 
         
         if (munmap(map, filesize) == -1) {

@@ -36,6 +36,7 @@ public:
     vector<DiskLevel<K,V> *> diskLevels;
     
     LSM<K,V>(const LSM<K,V> &other) = default;
+    LSM<K,V>(LSM<K,V> &&other) = default;
     
     LSM<K,V>(unsigned long initialSize, unsigned int numRuns, double merged_frac, double bf_fp, unsigned int pageSize, unsigned int diskRunsPerLevel):_initialSize(initialSize), _num_runs(numRuns), _frac_runs_merged(merged_frac), _diskRunsPerLevel(diskRunsPerLevel), _num_to_merge(ceil(_frac_runs_merged * _num_runs)), _pageSize(pageSize){
         _activeRun = 0;
@@ -61,6 +62,9 @@ public:
     }
     ~LSM<K,V>(){
         delete mergeLock;
+        if (mergeThread.joinable()){
+            mergeThread.join();
+        }
     }
     
     void insert_key(K key, V value) {
@@ -94,15 +98,17 @@ public:
                 return lookupRes == V_TOMBSTONE ? (V) NULL : lookupRes;
             }
         }
+//        mergeLock->lock();
         // it's not in C_0 so let's look at disk.
         for (int i = 0; i < _numDiskLevels; i++){
             
-            V lookupRes = diskLevels[i]->lookup(key, &found, mergeLock);
+            V lookupRes = diskLevels[i]->lookup(key, &found);
             if (found) {
+                mergeLock->unlock();
                 return lookupRes == V_TOMBSTONE ? (V) NULL : lookupRes;
             }
         }
-        
+//        mergeLock->unlock();
         return (V) NULL;
     }
     
@@ -134,7 +140,7 @@ public:
         for (int j = 0; j < _numDiskLevels; j++){
             for (int r = diskLevels[j]->_activeRun - 1; r >= 0 ; --r){
                 unsigned long i1, i2;
-                diskLevels[j]->runs[r]->range(key1, key2, i1, i2, mergeLock);
+                diskLevels[j]->runs[r]->range(key1, key2, i1, i2);
                 if (i2 - i1 != 0){
                     auto oldSize = eltsInRange.size();
                     eltsInRange.reserve(oldSize + (i2 - i1)); // also over-reserve space
@@ -197,6 +203,7 @@ public:
     unsigned int _diskRunsPerLevel;
     unsigned int _num_to_merge;
     unsigned int _pageSize;
+    thread mergeThread;
     
     void mergeRunsToLevel(int level) {
         bool isLast = false;
@@ -238,14 +245,14 @@ public:
         }
         sort(to_merge.begin(), to_merge.end());
 //        cout << "thread " << pthread_self() << " trying to lock mergeLock" << endl;
-//        mergeLock->lock();
+        mergeLock->lock();
 //        cout << "thread " << pthread_self() << " merging to disk" << endl;
         if (diskLevels[0]->levelFull()){
             mergeRunsToLevel(1);
         }
         diskLevels[0]->addRunByArray(&to_merge[0], to_merge.size());
 //        cout << "thread " << pthread_self() << " unlocking" << endl;
-//        mergeLock->unlock();
+        mergeLock->unlock();
         
     }
     
@@ -259,8 +266,11 @@ public:
             bf_to_merge.push_back(filters[i]);
         }
 //        cout << "main thread want to merge to disk" << endl;
-//        thread mergeThread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
-//        mergeThread.detach();
+//        if (mergeThread.joinable()){
+//            cout << "waiting on thread..."<< endl;
+//            mergeThread.join();
+//        }
+//        mergeThread = thread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
         merge_runs(runs_to_merge, bf_to_merge);
         C_0.erase(C_0.begin(), C_0.begin() + _num_to_merge);
         filters.erase(filters.begin(), filters.begin() + _num_to_merge);

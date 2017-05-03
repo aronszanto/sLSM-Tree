@@ -70,14 +70,14 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 50000000;
+    const int num_inserts = 1000000;
     const int max_levels = 16;
-    const int num_runs = 30;
-    const int buffer_capacity = 3000 * num_runs;
-    const double bf_fp = .005;
+    const int num_runs = 10;
+    const int buffer_capacity = 800 * num_runs;
+    const double bf_fp = .001;
     const int pageSize = 512;
-    const int disk_runs_per_level = 20;
-    const double merge_fraction = .8;
+    const int disk_runs_per_level = 10;
+    const double merge_fraction = 1;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
     std::vector<int> to_insert;
@@ -391,12 +391,74 @@ void rangeTest(){
 //    lsmTree.printElts();
 }
 
-
+void concurrentLookupTest(){
+    std::random_device                  rand_dev;
+    std::mt19937                        generator(rand_dev());
+    std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
+    
+    
+    const int num_inserts = 10000000;
+    const int max_levels = 16;
+    const int num_runs = 10;
+    const int buffer_capacity = 800 * num_runs;
+    const double bf_fp = .001;
+    const int pageSize = 512;
+    const int disk_runs_per_level = 5;
+    const double merge_fraction = 1;
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
+    
+    std::vector<int> to_insert;
+    for (int i = 0; i < num_inserts; i++) {
+        //        int insert = distribution(generator);
+        to_insert.push_back(i);
+    }
+    shuffle(to_insert.begin(), to_insert.end(), generator);
+    
+    std::clock_t    start_insert;
+    std::cout << "Starting inserts" << std::endl;
+    start_insert = std::clock();
+    for (int i = 0; i < num_inserts; i++) {
+        if ( i % 100000 == 0 ) cout << "insert " << i << endl;
+        lsmTree.insert_key(to_insert[i],i);
+        //        lsmTree.printElts();
+        
+    }
+    
+    double total_insert = (std::clock() - start_insert) / (double)(CLOCKS_PER_SEC);
+    
+    std::cout << "Time: " << total_insert << " s" << std::endl;
+    std::cout << "Inserts per second: " << (int) num_inserts / total_insert << " s" << std::endl;
+    
+    
+    std::clock_t    start_lookup;
+    std::cout << "Starting lookups" << std::endl;
+    int nthreads = 3;
+    auto threads = vector<thread>(nthreads);
+    
+    
+    start_lookup = std::clock();
+    //    lsmTree.printElts();
+    for (int t = 0; t < nthreads; t++){
+        threads[t] = thread ([&] {
+            for (int i = 0 ; i < num_inserts; i++) {
+                assert(((1737119 * t * i) % to_insert.size())  == lsmTree.lookup(to_insert[(1737119 * t * i) % to_insert.size()]));
+            }
+        });
+    }
+    for (int t = 0; t < nthreads; t++)
+        threads[t].join();
+    
+    double total_lookup = (std::clock() - start_lookup) / (double)(CLOCKS_PER_SEC);
+    
+    std::cout << "Time: " << total_lookup << " s" << std::endl;
+    std::cout << "Lookups per second: " << (int) nthreads * num_inserts / total_lookup << " s" << std::endl;
+}
 int main(){
 
 //    insertLookupTest();
-    updateDeleteTest();
+//    updateDeleteTest();
 //    rangeTest();
+    concurrentLookupTest();
     return 0;
     
 }

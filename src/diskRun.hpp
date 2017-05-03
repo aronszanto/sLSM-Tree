@@ -204,22 +204,20 @@ public:
         }
     }
     
-    unsigned long get_index(K key, bool *found, mutex *mergeLock){
+    unsigned long get_index(K key, bool *found){
         unsigned  start, end;
         get_flanking_FP(key, start, end);
-        mergeLock->lock();
         V ret = binary_search(start, end - start, key, found);
-        mergeLock->unlock();
         return ret;
     }
     
-     V lookup(K key, bool *found, mutex *mergeLock){
-         unsigned long idx = get_index(key, found, mergeLock);
+     V lookup(K key, bool *found){
+         unsigned long idx = get_index(key, found);
          V ret = map[idx].value;
          return *found ? ret : (V) NULL;
      }
     
-    void range(K key1, K key2, unsigned long &i1, unsigned long &i2, mutex *mergeLock){
+    void range(K key1, K key2, unsigned long &i1, unsigned long &i2){
         i1 = 0;
         i2 = 0;
         if (key1 > maxKey || key2 < minKey){
@@ -227,7 +225,7 @@ public:
         }
         if (key1 >= minKey){
             bool found = false;
-            i1 = get_index(key1, &found, mergeLock);
+            i1 = get_index(key1, &found);
             
         }
         if (key2 > maxKey){
@@ -236,7 +234,7 @@ public:
         }
         else {
             bool found = false;
-            i2 = get_index(key2, &found, mergeLock);
+            i2 = get_index(key2, &found);
         }
     }
     

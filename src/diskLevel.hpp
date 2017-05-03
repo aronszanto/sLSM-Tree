@@ -220,13 +220,13 @@ public: // TODO make some of these private
         return (_activeRun == 0);
     }
     
-    V lookup (K key, bool *found, mutex *mergeLock) {
+    V lookup (K key, bool *found) {
         int maxRunToSearch = levelFull() ? _numRuns - 1 : _activeRun - 1;
         for (int i = maxRunToSearch; i >= 0; --i){
             if (runs[i]->maxKey == INT_MIN || key < runs[i]->minKey || key > runs[i]->maxKey || !runs[i]->bf.mayContain(&key, sizeof(K))){
                 continue;
             }
-            V lookupRes = runs[i]->lookup(key, found, mergeLock);
+            V lookupRes = runs[i]->lookup(key, found);
             if (*found) {
                 return lookupRes;
             }

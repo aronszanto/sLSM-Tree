@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <string>
 #include "run.hpp"
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>

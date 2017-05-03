@@ -419,7 +419,7 @@ void concurrentLookupTest(){
     std::cout << "Starting inserts" << std::endl;
     start_insert = std::clock();
     for (int i = 0; i < num_inserts; i++) {
-        if ( i % 100000 == 0 ) cout << "insert " << i << endl;
+//        if ( i % 100000 == 0 ) cout << "insert " << i << endl;
         lsmTree.insert_key(to_insert[i],i);
         //        lsmTree.printElts();
         
@@ -433,7 +433,7 @@ void concurrentLookupTest(){
     
     std::clock_t    start_lookup;
     std::cout << "Starting lookups" << std::endl;
-    int nthreads = 3;
+    int nthreads = 1;
     auto threads = vector<thread>(nthreads);
     
     
@@ -450,16 +450,16 @@ void concurrentLookupTest(){
         threads[t].join();
     
     double total_lookup = (std::clock() - start_lookup) / (double)(CLOCKS_PER_SEC);
-    
+    cout << "Number of Threads: " << nthreads << endl;
     std::cout << "Time: " << total_lookup << " s" << std::endl;
     std::cout << "Lookups per second: " << (int) nthreads * num_inserts / total_lookup << " s" << std::endl;
 }
 int main(){
 
-    insertLookupTest();
+//    insertLookupTest();
 //    updateDeleteTest();
 //    rangeTest();
-//    concurrentLookupTest();
+    concurrentLookupTest();
     return 0;
     
 }

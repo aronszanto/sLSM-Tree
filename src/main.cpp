@@ -403,8 +403,8 @@ void concurrentLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 1000000;
-    const int num_lookups = 100000;
+    const int num_inserts = 2000000;
+    const int num_lookups = 1000000;
     const int max_levels = 16;
     const int num_runs = 100;
     const int buffer_capacity = 1400 * num_runs;

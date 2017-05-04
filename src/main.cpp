@@ -435,14 +435,15 @@ void concurrentLookupTest(){
 //    std::cout << "Time: " << total_insert << " s" << std::endl;
 //    std::cout << "Inserts per second: " << (int) num_inserts / total_insert << " s" << std::endl;
     
-    struct timespec start, finish;
     
-    clock_gettime(CLOCK_MONOTONIC, &start);
     
 //    std::cout << "Starting lookups" << std::endl;
 //    int nthreads = nt;
     cout << "nthreads time lookups/sec" << endl;
     for (int i = 1; i <= 33; i += 4){
+        struct timespec start, finish;
+        
+        clock_gettime(CLOCK_MONOTONIC, &start);
         int nthreads = i;
 
         auto threads = vector<thread>(nthreads);

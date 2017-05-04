@@ -138,9 +138,9 @@ public:
         
     }
     
-    unsigned long binary_search (const unsigned long offset, unsigned long n, K key, bool *found) {
+    unsigned long binary_search (const unsigned long offset, unsigned long n, K &key, bool &found) {
         if (n == 0){
-            *found = true;
+            found = true;
             return offset;
         }
         unsigned long min = offset, max = offset + n - 1;
@@ -149,7 +149,7 @@ public:
             if (key > map[middle].key)
                 min = middle + 1;
             else if (key == map[middle].key) {
-                *found = true;
+                found = true;
                 return middle;
             }
             else
@@ -160,7 +160,7 @@ public:
         return min;
     }
     
-    void get_flanking_FP(K key, unsigned &start, unsigned &end){
+    void get_flanking_FP(K &key, unsigned &start, unsigned &end){
         if (_iMaxFP == 0) {
             start = 0;
             end = _capacity;
@@ -207,17 +207,17 @@ public:
         }
     }
     
-    unsigned long get_index(K key, bool *found){
+    unsigned long get_index(K &key, bool &found){
         unsigned  start, end;
         get_flanking_FP(key, start, end);
         V ret = binary_search(start, end - start, key, found);
         return ret;
     }
     
-     V lookup(K key, bool *found){
+     V lookup(K key, bool found){
          unsigned long idx = get_index(key, found);
          V ret = map[idx].value;
-         return *found ? ret : (V) NULL;
+         return found ? ret : (V) NULL;
      }
     
     void range(K key1, K key2, unsigned long &i1, unsigned long &i2){
@@ -228,7 +228,7 @@ public:
         }
         if (key1 >= minKey){
             bool found = false;
-            i1 = get_index(key1, &found);
+            i1 = get_index(key1, found);
             
         }
         if (key2 > maxKey){
@@ -237,7 +237,7 @@ public:
         }
         else {
             bool found = false;
-            i2 = get_index(key2, &found);
+            i2 = get_index(key2, found);
         }
     }
     

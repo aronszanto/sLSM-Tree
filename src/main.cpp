@@ -71,7 +71,7 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 5000000;
+    const int num_inserts = 50000;
     const int max_levels = 16;
     const int num_runs = 20;
     const int buffer_capacity = 500 * num_runs;
@@ -342,9 +342,9 @@ void updateDeleteTest(){
         lsmTree.delete_key(i);
 
     }
-   
+    int negone = -1;
     for (int i = 0; i < num_inserts * 10; i++) {
-        lsmTree.insert_key(i, -1);
+        lsmTree.insert_key(i,  negone);
     }
     for (int i = 0; i < num_inserts * 10; i++) {
         auto l = lsmTree.lookup(i);
@@ -353,13 +353,13 @@ void updateDeleteTest(){
     
 }
 void rangeTest(){
-    const int num_inserts = 100;
+    const int num_inserts = 10000000;
     const int max_levels = 16;
-    const int num_runs = 1;
-    const int buffer_capacity = 5 * num_runs;
+    const int num_runs = 20;
+    const int buffer_capacity = 500 * num_runs;
     const double bf_fp = .01;
-    const int pageSize = 1024;
-    const int disk_runs_per_level = 2;
+    const int pageSize = 512;
+    const int disk_runs_per_level = 5;
     const double merge_fraction = .7;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
 
@@ -368,36 +368,30 @@ void rangeTest(){
     for (int i = 0; i < num_inserts; i++) {
         to_insert.push_back(i);
     }
-//    shuffle(to_insert.begin(), to_insert.end(), generator);
+    shuffle(to_insert.begin(), to_insert.end(), generator);
 
     for (int i = 0; i < num_inserts; i++) {
         lsmTree.insert_key(to_insert[i], i);
     }
     
     int n1 = 0;
-    int n2 = 50;
+    int n2 = 5000000;
     auto r = lsmTree.range(n1, n2);
     assert(r.size() == (n2 - n1));
-    
+    int negone = -1;
     for (int i = n1; i < n2; i++) {
-        lsmTree.insert_key(i, -1);
+        lsmTree.insert_key(i, negone);
     }
     r = lsmTree.range(n1, n2);
     assert(r.size() == (n2 - n1));
-    int nd = 20;
-    lsmTree.printElts();
+    int nd = 2000000;
 
     for (int i = n1; i < n1 + nd; i++) {
         lsmTree.delete_key(i);
-        lsmTree.printElts();
 
     }
-    lsmTree.printElts();
 
     r = lsmTree.range(n1, n2);
-    sort(r.begin(), r.end());
-    cout << r[0].key << " " << r[r.size() - 1].key << endl;
-    cout << r.size() << " " << (n2 - n1 - nd) << endl;
     assert(r.size() == (n2 - n1 - nd));
 //    lsmTree.printElts();
 }
@@ -431,7 +425,6 @@ void concurrentLookupTest(){
     for (int i = 0; i < num_inserts; i++) {
 //        if ( i % 100000 == 0 ) cout << "insert " << i << endl;
         lsmTree.insert_key(to_insert[i],i);
-        //        lsmTree.printElts();
         
     }
     
@@ -448,7 +441,6 @@ void concurrentLookupTest(){
     
     
     start_lookup = std::clock();
-    //    lsmTree.printElts();
     for (int t = 0; t < nthreads; t++){
         threads[t] = thread ([&] {
             for (int i = 0 ; i < num_inserts; i++) {
@@ -466,9 +458,9 @@ void concurrentLookupTest(){
 }
 int main(){
 
-//    insertLookupTest();
+    insertLookupTest();
 //    updateDeleteTest();
-    rangeTest();
+//    rangeTest();
 //    concurrentLookupTest();
     return 0;
     

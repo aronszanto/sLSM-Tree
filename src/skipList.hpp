@@ -35,13 +35,13 @@ public:
     SkipList_Node<K,V,MAXLEVEL>* _forward[MAXLEVEL+1];
     
     
-    SkipList_Node(K searchKey):key(searchKey) {
+    SkipList_Node(const K searchKey):key(searchKey) {
         for (int i=1; i<=MAXLEVEL; i++) {
             _forward[i] = NULL;
         }
     }
     
-    SkipList_Node(K searchKey,V val):key(searchKey),value(val) {
+    SkipList_Node(const K searchKey,const V val):key(searchKey),value(val) {
         for (int i=1; i<=MAXLEVEL; i++) {
             _forward[i] = NULL;
         }
@@ -61,7 +61,7 @@ public:
     K min;
     K max;
     
-    SkipList(K minKey,K maxKey):p_listHead(NULL),p_listTail(NULL),
+    SkipList(const K minKey,const K maxKey):p_listHead(NULL),p_listTail(NULL),
     cur_max_level(1),max_level(MAXLEVEL), min((K) NULL), max((K) NULL),
     _minKey(minKey),_maxKey(maxKey), _n(0)
     {
@@ -84,7 +84,7 @@ public:
         delete p_listTail;
     }
     
-    void insert_key(const K key,V value) {
+    void insert_key(const K &key, const V &value) {
         if (key > max){
             max = key;
         }
@@ -124,7 +124,7 @@ public:
         _n++;
     }
     
-    void delete_key(const K searchKey) {
+    void delete_key(const K &searchKey) {
         //            SkipList_Node<K,V,MAXLEVEL>* update[MAXLEVEL];
         Node* update[MAXLEVEL];
         Node* currNode = p_listHead;
@@ -151,7 +151,7 @@ public:
         _n--;
     }
     
-    V lookup(const K searchKey, bool *found) {
+    V lookup(const K &searchKey, bool &found) {
         Node* currNode = p_listHead;
         for(int level=cur_max_level; level >=1; level--) {
             while (currNode->_forward[level]->key < searchKey) {
@@ -160,7 +160,7 @@ public:
         }
         currNode = currNode->_forward[1];
         if (currNode->key == searchKey) {
-            *found = true;
+            found = true;
             return currNode->value;
         }
         else {
@@ -180,7 +180,7 @@ public:
         return vec;
     }
     
-    vector<KVPair<K,V>> get_all_in_range(K key1, K key2){
+    vector<KVPair<K,V>> get_all_in_range(const K &key1, const K &key2){
         if (key1 > max || key2 < min){
             return (vector<KVPair<K,V>>) {};
         }
@@ -202,7 +202,7 @@ public:
     }
 
     
-    bool eltIn(K key) {
+    bool eltIn(K &key) {
         return lookup(key);
     }
     
@@ -246,7 +246,6 @@ public:
     Node* p_listHead;
     Node* p_listTail;
     uint32_t _keysPerLevel[MAXLEVEL];
-    //        SkipList_Node<K,V,MAXLEVEL>* p_listTail;
     
 };
 

@@ -71,7 +71,7 @@ public:
         }
     }
     
-    void insert_key(K key, V value) {
+    void insert_key(K &key, V &value) {
         //        cout << "inserting key " << key << endl;
         if (C_0[_activeRun]->num_elements() >= _eltsPerRun){
             //            cout << "run " << _activeRun << " full, moving to next" << endl;
@@ -88,7 +88,7 @@ public:
         filters[_activeRun]->add(&key, sizeof(K));
     }
     
-    V lookup(K key){
+    V lookup(K &key){
         bool found = false;
         // TODO keep track of min/max in runs?
         //        cout << "looking for key " << key << endl;
@@ -97,7 +97,7 @@ public:
             if (key < C_0[i]->get_min() || key > C_0[i]->get_max() || !filters[i]->mayContain(&key, sizeof(K)))
                 continue;
             
-            V lookupRes = C_0[i]->lookup(key, &found);
+            V lookupRes = C_0[i]->lookup(key, found);
             if (found) {
                 return lookupRes == V_TOMBSTONE ? (V) NULL : lookupRes;
             }
@@ -109,7 +109,7 @@ public:
         // it's not in C_0 so let's look at disk.
         for (int i = 0; i < _numDiskLevels; i++){
             
-            V lookupRes = diskLevels[i]->lookup(key, &found);
+            V lookupRes = diskLevels[i]->lookup(key, found);
             if (found) {
                 return lookupRes == V_TOMBSTONE ? (V) NULL : lookupRes;
             }
@@ -117,11 +117,11 @@ public:
         return (V) NULL;
     }
     
-    void delete_key(K key){
+    void delete_key(K &key){
         insert_key(key, V_TOMBSTONE);
     }
     
-    vector<KVPair<K,V>> range(K key1, K key2){
+    vector<KVPair<K,V>> range(K &key1, K &key2){
         if (key2 <= key1){
             return (vector<KVPair<K,V>> {});
         }

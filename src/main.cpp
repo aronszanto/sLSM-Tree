@@ -440,7 +440,9 @@ void concurrentLookupTest(){
 //    std::cout << "Starting lookups" << std::endl;
 //    int nthreads = nt;
     cout << "nthreads time lookups/sec" << endl;
-    for (int i = 1; i <= 33; i += 4){
+    for (int i = 0; i <= 50; i += 2){
+        if (i ==0)
+            continue;
         struct timespec start, finish;
         
         clock_gettime(CLOCK_MONOTONIC, &start);

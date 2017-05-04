@@ -138,7 +138,7 @@ public:
         
     }
     
-    unsigned long binary_search (const unsigned long offset, unsigned long n, K &key, bool &found) {
+    unsigned long binary_search (const unsigned long offset, const unsigned long n, const K &key, bool &found) {
         if (n == 0){
             found = true;
             return offset;
@@ -160,7 +160,7 @@ public:
         return min;
     }
     
-    void get_flanking_FP(K &key, unsigned &start, unsigned &end){
+    void get_flanking_FP(const K &key, unsigned &start, unsigned &end){
         if (_iMaxFP == 0) {
             start = 0;
             end = _capacity;
@@ -207,20 +207,20 @@ public:
         }
     }
     
-    unsigned long get_index(K &key, bool &found){
+    unsigned long get_index(const K &key, bool &found){
         unsigned  start, end;
         get_flanking_FP(key, start, end);
         V ret = binary_search(start, end - start, key, found);
         return ret;
     }
     
-     V lookup(K key, bool found){
+     V lookup(const K &key, bool &found){
          unsigned long idx = get_index(key, found);
          V ret = map[idx].value;
          return found ? ret : (V) NULL;
      }
     
-    void range(K key1, K key2, unsigned long &i1, unsigned long &i2){
+    void range(const K &key1, const K &key2, unsigned long &i1, unsigned long &i2){
         i1 = 0;
         i2 = 0;
         if (key1 > maxKey || key2 < minKey){

@@ -397,17 +397,17 @@ void rangeTest(){
 //    lsmTree.printElts();
 }
 
-void concurrentLookupTest(int nt){
+void concurrentLookupTest(){
     std::random_device                  rand_dev;
     std::mt19937                        generator(rand_dev());
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
     const int num_inserts = 1000000;
-    const int num_lookups = 50000;
+    const int num_lookups = 100000;
     const int max_levels = 16;
     const int num_runs = 100;
-    const int buffer_capacity = 1000 * num_runs;
+    const int buffer_capacity = 1400 * num_runs;
     const double bf_fp = .001;
     const int pageSize = 512;
     const int disk_runs_per_level = 40;
@@ -421,7 +421,7 @@ void concurrentLookupTest(int nt){
     }
     shuffle(to_insert.begin(), to_insert.end(), generator);
     
-    std::cout << "Starting inserts" << std::endl;
+//    std::cout << "Starting inserts" << std::endl;
     clock_gettime(CLOCK_MONOTONIC, &start);
 
     for (int i = 0; i < num_inserts; i++) {
@@ -432,49 +432,55 @@ void concurrentLookupTest(int nt){
     clock_gettime(CLOCK_MONOTONIC, &finish);
     double total_insert = (finish.tv_sec - start.tv_sec);
     total_insert += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-    std::cout << "Time: " << total_insert << " s" << std::endl;
-    std::cout << "Inserts per second: " << (int) num_inserts / total_insert << " s" << std::endl;
+//    std::cout << "Time: " << total_insert << " s" << std::endl;
+//    std::cout << "Inserts per second: " << (int) num_inserts / total_insert << " s" << std::endl;
     
     struct timespec start, finish;
     
     clock_gettime(CLOCK_MONOTONIC, &start);
     
-    std::cout << "Starting lookups" << std::endl;
-    int nthreads = nt;
-    auto threads = vector<thread>(nthreads);
-    
-    
-    for (int t = 0; t < nthreads; t++){
-        threads[t] = thread ([&] {
-            unsigned m = rand();
-            
-            for (int i = 0 ; i < num_lookups; i++) {
-                //                cout << (1737119 * m * i) % to_insert.size() << endl;
-                lsmTree.lookup(to_insert[(1737119 * m * i) % to_insert.size()]);
-            }
-            
-        });
+//    std::cout << "Starting lookups" << std::endl;
+//    int nthreads = nt;
+    cout << "nthreads time lookups/sec" << endl;
+    for (int i = 1; i <= 33; i += 4){
+        int nthreads = i;
+
+        auto threads = vector<thread>(nthreads);
+        
+        
+        for (int t = 0; t < nthreads; t++){
+            threads[t] = thread ([&] {
+                unsigned m = rand();
+                
+                for (int i = 0 ; i < num_lookups; i++) {
+                    //                cout << (1737119 * m * i) % to_insert.size() << endl;
+                    lsmTree.lookup(to_insert[(1737119 * m * i) % to_insert.size()]);
+                }
+                
+            });
+        }
+        for (int t = 0; t < nthreads; t++)
+            threads[t].join();
+        
+        
+        
+        clock_gettime(CLOCK_MONOTONIC, &finish);
+        
+        double total_lookup = (finish.tv_sec - start.tv_sec);
+        total_lookup += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+       
+//        cout << "Number of Threads: " << nthreads << endl;
+    //    std::cout << "Time: " << total_lookup << " s" << std::endl;
+//        std::cout << "Lookups per second: " << (int) nthreads * num_lookups / total_lookup << " s" << std::endl;
+        std::cout << nthreads << " " << total_lookup << " " << (int) nthreads * num_lookups / total_lookup << endl;
     }
-    for (int t = 0; t < nthreads; t++)
-        threads[t].join();
-    
-    
-    
-    clock_gettime(CLOCK_MONOTONIC, &finish);
-    
-    double total_lookup = (finish.tv_sec - start.tv_sec);
-    total_lookup += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-   
-    cout << "Number of Threads: " << nthreads << endl;
-    std::cout << "Time: " << total_lookup << " s" << std::endl;
-    std::cout << "Lookups per second: " << (int) nthreads * num_lookups / total_lookup << " s" << std::endl;
 }
-int main(){
+int main(int argc, char *argv[]){
 
 //    insertLookupTest();
 //    updateDeleteTest();
 //    rangeTest();
-//    concurrentLookupTest(3);
+    concurrentLookupTest();
     return 0;
     
 }

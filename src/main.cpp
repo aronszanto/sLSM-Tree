@@ -353,13 +353,13 @@ void updateDeleteTest(){
     
 }
 void rangeTest(){
-    const int num_inserts = 5000000;
+    const int num_inserts = 100;
     const int max_levels = 16;
-    const int num_runs = 20;
-    const int buffer_capacity = 2000 * num_runs;
+    const int num_runs = 1;
+    const int buffer_capacity = 5 * num_runs;
     const double bf_fp = .01;
     const int pageSize = 1024;
-    const int disk_runs_per_level = 4;
+    const int disk_runs_per_level = 2;
     const double merge_fraction = .7;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
 
@@ -368,13 +368,14 @@ void rangeTest(){
     for (int i = 0; i < num_inserts; i++) {
         to_insert.push_back(i);
     }
-    shuffle(to_insert.begin(), to_insert.end(), generator);
+//    shuffle(to_insert.begin(), to_insert.end(), generator);
 
     for (int i = 0; i < num_inserts; i++) {
-        lsmTree.insert_key(i, to_insert[i]);
+        lsmTree.insert_key(to_insert[i], i);
     }
+    
     int n1 = 0;
-    int n2 = 2000000;
+    int n2 = 50;
     auto r = lsmTree.range(n1, n2);
     assert(r.size() == (n2 - n1));
     
@@ -383,11 +384,20 @@ void rangeTest(){
     }
     r = lsmTree.range(n1, n2);
     assert(r.size() == (n2 - n1));
-    int nd = 1000000;
+    int nd = 20;
+    lsmTree.printElts();
+
     for (int i = n1; i < n1 + nd; i++) {
         lsmTree.delete_key(i);
+        lsmTree.printElts();
+
     }
+    lsmTree.printElts();
+
     r = lsmTree.range(n1, n2);
+    sort(r.begin(), r.end());
+    cout << r[0].key << " " << r[r.size() - 1].key << endl;
+    cout << r.size() << " " << (n2 - n1 - nd) << endl;
     assert(r.size() == (n2 - n1 - nd));
 //    lsmTree.printElts();
 }
@@ -458,8 +468,8 @@ int main(){
 
 //    insertLookupTest();
 //    updateDeleteTest();
-//    rangeTest();
-    concurrentLookupTest();
+    rangeTest();
+//    concurrentLookupTest();
     return 0;
     
 }

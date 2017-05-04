@@ -158,7 +158,7 @@ public: // TODO make some of these private
                 
         }
         
-        if (runs[_activeRun]->map[j].value == V_TOMBSTONE){
+        if (lastLevel && runs[_activeRun]->map[j].value == V_TOMBSTONE){
             --j;
         }
         runs[_activeRun]->setCapacity(j + 1);

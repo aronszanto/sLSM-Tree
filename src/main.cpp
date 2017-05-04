@@ -397,7 +397,7 @@ void rangeTest(){
 //    lsmTree.printElts();
 }
 
-void concurrentLookupTest(){
+void concurrentLookupTest(int nt){
     std::random_device                  rand_dev;
     std::mt19937                        generator(rand_dev());
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
@@ -440,7 +440,7 @@ void concurrentLookupTest(){
     clock_gettime(CLOCK_MONOTONIC, &start);
     
     std::cout << "Starting lookups" << std::endl;
-    int nthreads = 1;
+    int nthreads = nt;
     auto threads = vector<thread>(nthreads);
     
     
@@ -471,10 +471,10 @@ void concurrentLookupTest(){
 }
 int main(){
 
-    insertLookupTest();
+//    insertLookupTest();
 //    updateDeleteTest();
 //    rangeTest();
-//    concurrentLookupTest();
+//    concurrentLookupTest(3);
     return 0;
     
 }

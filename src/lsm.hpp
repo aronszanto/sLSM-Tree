@@ -42,9 +42,8 @@ public:
     LSM<K,V>(const LSM<K,V> &other) = default;
     LSM<K,V>(LSM<K,V> &&other) = default;
     
-    LSM<K,V>(unsigned long initialSize, unsigned int numRuns, double merged_frac, double bf_fp, unsigned int pageSize, unsigned int diskRunsPerLevel):_initialSize(initialSize), _num_runs(numRuns), _frac_runs_merged(merged_frac), _diskRunsPerLevel(diskRunsPerLevel), _num_to_merge(ceil(_frac_runs_merged * _num_runs)), _pageSize(pageSize){
+    LSM<K,V>(unsigned long eltsPerRun, unsigned int numRuns, double merged_frac, double bf_fp, unsigned int pageSize, unsigned int diskRunsPerLevel): _eltsPerRun(eltsPerRun), _num_runs(numRuns), _frac_runs_merged(merged_frac), _diskRunsPerLevel(diskRunsPerLevel), _num_to_merge(ceil(_frac_runs_merged * _num_runs)), _pageSize(pageSize){
         _activeRun = 0;
-        _eltsPerRun = initialSize / numRuns;
         _bfFalsePositiveRate = bf_fp;
         
         
@@ -207,7 +206,6 @@ public:
     }
     
     //private: // TODO MAKE PRIVATE
-    unsigned long _initialSize;
     unsigned int _activeRun;
     unsigned long _eltsPerRun;
     double _bfFalsePositiveRate;

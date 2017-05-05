@@ -1,0 +1,9 @@
+
+<schema name="life-cycle-period" topology="XRTD50_CC22_TypeID">
+    <column engineeringType="XRStartTimeTypeID" engineeringName="Start" mnemonic="start" topologyField="XRTraceRelativeTimestampFieldID"></column>
+    <column engineeringType="XRDurationTypeID" engineeringName="Duration" mnemonic="duration" topologyField="XRDurationFieldID"></column>
+    <column engineeringType="XRPrototypeStringTypeID" engineeringName="Group" mnemonic="group" topologyField="XRCategory1FieldID"></column>
+    <column engineeringType="XRLayoutIDTypeID" engineeringName="Layout ID" mnemonic="lane" topologyField="XRCategory2FieldID"></column>
+    <column engineeringType="XRApplicationPeriodTypeID" engineeringName="Life Cycle Period" mnemonic="period"></column>
+    <column engineeringType="XRNarrativeEntryTypeID" engineeringName="Narrative" mnemonic="narrative"></column>
+</schema>

@@ -1,0 +1,10 @@
+
+<schema name="time-profile" topology="XRT50_C22_TypeID">
+    <column engineeringType="XRSampleTimestampTypeID" engineeringName="Sample Time" mnemonic="time" topologyField="XRTraceRelativeTimestampFieldID"></column>
+    <column engineeringType="XRThreadTypeID" engineeringName="Thread" mnemonic="thread" topologyField="XRCategory1FieldID"></column>
+    <column engineeringType="XRProcessTypeID" engineeringName="Process" mnemonic="process"></column>
+    <column engineeringType="XRCPUCoreTypeID" engineeringName="Core" mnemonic="core"></column>
+    <column engineeringType="XRThreadStateTypeID" engineeringName="State" mnemonic="thread-state"></column>
+    <column engineeringType="XRTimeSampleWeightTypeID" engineeringName="Weight" mnemonic="weight"></column>
+    <column engineeringType="XRBacktraceTypeID" engineeringName="Stack" mnemonic="stack"></column>
+</schema>

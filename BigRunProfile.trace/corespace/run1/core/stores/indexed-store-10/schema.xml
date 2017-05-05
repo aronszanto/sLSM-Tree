@@ -1,0 +1,17 @@
+
+<schema name="kdebug" topology="XRT50_C22_TypeID">
+    <column engineeringType="XRRecordedEventTimestampTypeID" engineeringName="Timestamp" mnemonic="time" topologyField="XRTraceRelativeTimestampFieldID"></column>
+    <column engineeringType="XRThreadTypeID" engineeringName="Thread" mnemonic="thread"></column>
+    <column engineeringType="XRCPUCoreTypeID" engineeringName="Core Index" mnemonic="core-index"></column>
+    <column engineeringType="XRCoreProfileCallstackTypeID" engineeringName="CP Kernel Callstack" mnemonic="cp-kernel-callstack"></column>
+    <column engineeringType="XRCoreProfileCallstackTypeID" engineeringName="CP User Callstack" mnemonic="cp-user-callstack"></column>
+    <column engineeringType="XRKDebugClassTypeID" engineeringName="Class" mnemonic="class"></column>
+    <column engineeringType="XRKDebugSubclassTypeID" engineeringName="Subclass" mnemonic="subclass"></column>
+    <column engineeringType="XRKDebugCodeTypeID" engineeringName="Code" mnemonic="code"></column>
+    <column engineeringType="XRKDebugFunctionTypeID" engineeringName="Qualifier" mnemonic="function"></column>
+    <column engineeringType="XRKDebugArgumentTypeID" engineeringName="Argument 1" mnemonic="arg1"></column>
+    <column engineeringType="XRKDebugArgumentTypeID" engineeringName="Argument 2" mnemonic="arg2"></column>
+    <column engineeringType="XRKDebugArgumentTypeID" engineeringName="Argument 3" mnemonic="arg3"></column>
+    <column engineeringType="XRKDebugArgumentTypeID" engineeringName="Argument 4" mnemonic="arg4"></column>
+    <column engineeringType="XRKDebugArgumentTypeID" engineeringName="Argument 5" mnemonic="arg5"></column>
+</schema>

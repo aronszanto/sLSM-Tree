@@ -1,0 +1,4 @@
+
+<schema name="tick" topology="XRT50_C22_TypeID">
+    <column engineeringType="XRSampleTimestampTypeID" engineeringName="Timestamp" mnemonic="time" topologyField="XRTraceRelativeTimestampFieldID"></column>
+</schema>

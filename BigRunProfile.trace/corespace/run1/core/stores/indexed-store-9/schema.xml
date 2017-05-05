@@ -1,0 +1,9 @@
+
+<schema name="time-sample" topology="XRT50_C22_TypeID">
+    <column engineeringType="XRSampleTimestampTypeID" engineeringName="Timestamp" mnemonic="time" topologyField="XRTraceRelativeTimestampFieldID"></column>
+    <column engineeringType="XRThreadTypeID" engineeringName="Thread" mnemonic="thread"></column>
+    <column engineeringType="XRCPUCoreTypeID" engineeringName="Core Index" mnemonic="core-index"></column>
+    <column engineeringType="XRThreadStateTypeID" engineeringName="Thread State" mnemonic="thread-state"></column>
+    <column engineeringType="XRCoreProfileCallstackTypeID" engineeringName="Kernel Callstack ID" mnemonic="cp-kernel-callstack"></column>
+    <column engineeringType="XRCoreProfileCallstackTypeID" engineeringName="User Callstack ID" mnemonic="cp-user-callstack"></column>
+</schema>

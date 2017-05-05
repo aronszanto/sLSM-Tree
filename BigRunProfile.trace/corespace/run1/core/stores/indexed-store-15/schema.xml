@@ -1,0 +1,6 @@
+
+<schema name="modeler-log" topology="XRT50_C22_TypeID">
+    <column engineeringType="XRModelerClockTypeID" engineeringName="Stream Time" mnemonic="clock" topologyField="XRTraceRelativeTimestampFieldID"></column>
+    <column engineeringType="XRNarrativeEntrySignificanceTypeID" engineeringName="Significance" mnemonic="significance"></column>
+    <column engineeringType="XRNarrativeEntryTypeID" engineeringName="Narrative" mnemonic="narrative"></column>
+</schema>

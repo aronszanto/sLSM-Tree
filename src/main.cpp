@@ -24,6 +24,16 @@ using namespace std;
 
 struct timespec start, finish;
 double elapsed;
+struct LSMParams {
+    const int num_inserts;
+    const int max_levels;
+    const int num_runs;
+    const int buffer_capacity;
+    const double bf_fp;
+    const int pageSize;
+    const int disk_runs_per_level;
+    const double merge_fraction;
+};
 
 
 void bloomFilterTest(){

@@ -57,6 +57,7 @@ class SkipList : public Run<K,V>
 public:
     
     typedef SkipList_Node<K,V,MAXLEVEL> Node;
+
     const int max_level;
     K min;
     K max;
@@ -119,9 +120,11 @@ public:
                 currNode->_forward[level] = update[level]->_forward[level];
                 update[level]->_forward[level] = currNode;
             }
+            ++_n;
+
         }
         
-        ++_n;
+        
     }
     
     void delete_key(const K &searchKey) {

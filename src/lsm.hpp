@@ -79,7 +79,7 @@ public:
         
     }
     
-    void insert_key(K &key, V &value) {
+    bool insert_key(K &key, V &value) {
         //        cout << "inserting key " << key << endl;
         if (C_0[_activeRun]->num_elements() >= _eltsPerRun){
             //            cout << "run " << _activeRun << " full, moving to next" << endl;
@@ -94,7 +94,6 @@ public:
         //        cout << "inserting key " << key << " to run " << _activeRun << endl;
         C_0[_activeRun]->insert_key(key,value);
         filters[_activeRun]->add(&key, sizeof(K));
-        ++_n;
     }
     
     bool lookup(K &key, V &value){
@@ -106,11 +105,9 @@ public:
             if (key < C_0[i]->get_min() || key > C_0[i]->get_max() || !filters[i]->mayContain(&key, sizeof(K)))
                 continue;
             
-            V lookupRes = C_0[i]->lookup(key, found);
+            value = C_0[i]->lookup(key, found);
             if (found) {
-                value = value == V_TOMBSTONE ? (V) NULL : lookupRes;
-                return value;
-                
+                return value != V_TOMBSTONE;
             }
         }
         if (mergeThread.joinable()){
@@ -120,10 +117,9 @@ public:
         // it's not in C_0 so let's look at disk.
         for (int i = 0; i < _numDiskLevels; i++){
             
-            V lookupRes = diskLevels[i]->lookup(key, found);
+            value = diskLevels[i]->lookup(key, found);
             if (found) {
-                value = value == V_TOMBSTONE ? (V) NULL : lookupRes;
-                return value;
+                return value != V_TOMBSTONE;
             }
         }
         return false;
@@ -202,7 +198,7 @@ public:
         cout << "\nDISK BUFFER" << endl;
         for (int i = 0; i < _numDiskLevels; i++){
             cout << "DISK LEVEL " << i << endl;
-            for (int j = 0; j < _diskRunsPerLevel; j++){
+            for (int j = 0; j < diskLevels[i]->_activeRun; j++){
                 cout << "RUN " << j << endl;
                 for (int k = 0; k < diskLevels[i]->runs[j]->getCapacity(); k++){
                     cout << diskLevels[i]->runs[j]->map[k].key << ":" << diskLevels[i]->runs[j]->map[k].value << " ";
@@ -214,13 +210,13 @@ public:
         
     }
     void printStats(){
-        cout << "Number of Elements (Including Deletes): " << size() << endl;
-        cout << "Number of Elements in Buffer: " << num_buffer() << endl;
+        cout << "Number of Elements: " << size() << endl;
+        cout << "Number of Elements in Buffer (including deletes): " << num_buffer() << endl;
         
         for (int i = 0; i < diskLevels.size(); ++i){
-            cout << "Number of Elements in Disk Level " << i << ": " << diskLevels[i]->num_elements() << endl;
+            cout << "Number of Elements in Disk Level " << i << "(including deletes): " << diskLevels[i]->num_elements() << endl;
         }
-        cout << "KEY VALUE DUMP: " << endl;
+        cout << "KEY VALUE DUMP BY LEVEL: " << endl;
         printElts();
     }
     
@@ -326,7 +322,10 @@ public:
         return total;
     }
     unsigned long size(){
-        return _n;
+        K min = INT_MIN;
+        K max = INT_MAX;
+        auto r = range(min, max);
+        return r.size();
     }
 
 };

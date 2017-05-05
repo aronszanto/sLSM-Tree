@@ -378,6 +378,7 @@ void updateDeleteTest(){
         lsmTree.delete_key(i);
 
     }
+//        lsmTree.printStats(); // this is a good demo
     int negone = -1;
     for (int i = 0; i < num_inserts * 10; i++) {
         lsmTree.insert_key(i,  negone);
@@ -387,6 +388,7 @@ void updateDeleteTest(){
         lsmTree.lookup(i, lookup);
         assert(lookup == -1);
     }
+
     
 }
 void rangeTest(){
@@ -686,16 +688,28 @@ void queryLine(LSM<int, int> &lsm, const string &line, vector<string> &strings){
 int main(int argc, char *argv[]){
 
 //    insertLookupTest();
-//    updateDeleteTest();
+    updateDeleteTest();
 //    rangeTest();
 //    concurrentLookupTest();
 //    tailLatencyTest();
 //    cartesianTest();
 //    hardCodeTest(1000000000,20,800,0.00100,1.0,1024,20);
 
-    auto lsm = LSM<int, int>(800,20,1.0,0.00100,1024,20);
-    auto strings = vector<string>(3);
-    queryLine(lsm, "l test.bin", strings);
+//    auto lsm = LSM<int, int>(800,20,1.0,0.00100,1024,20);
+//    auto strings = vector<string>(3);
+//    queryLine(lsm, "l test.bin", strings);
+//    queryLine(lsm, "d 0", strings);
+//    queryLine(lsm, "p 6 6", strings);
+//    queryLine(lsm, "g 0", strings);
+//    queryLine(lsm, "p 6 7", strings);
+//    queryLine(lsm, "g 6", strings);
+//    queryLine(lsm, "r 0 10", strings);
+//    queryLine(lsm, "s", strings);
+
+
+
+
+
 
 
 

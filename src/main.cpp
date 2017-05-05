@@ -411,7 +411,7 @@ void concurrentLookupTest(){
     const double bf_fp = .001;
     const int pageSize = 512;
     const int disk_runs_per_level = 40;
-    const double merge_fraction = .25;
+    const double merge_fraction = 1;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
     std::vector<int> to_insert;
@@ -478,12 +478,52 @@ void concurrentLookupTest(){
         std::cout << nthreads << " " << total_lookup << " " << (int) nthreads * num_lookups / total_lookup << endl;
     }
 }
+
+void tailLatencyTest(){
+    std::random_device                  rand_dev;
+    std::mt19937                        generator(rand_dev());
+    std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
+    
+    
+    const int num_inserts = 10000000;
+    const int max_levels = 16;
+    const int num_runs = 200;
+    const int buffer_capacity = 1400 * num_runs;
+    const double bf_fp = .001;
+    const int pageSize = 512;
+    const int disk_runs_per_level = 2;
+    const double merge_fraction = 1;
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
+    
+    std::vector<int> to_insert;
+    for (int i = 0; i < num_inserts; i++) {
+        //        int insert = distribution(generator);
+        to_insert.push_back(i);
+    }
+    shuffle(to_insert.begin(), to_insert.end(), generator);
+    
+    auto times = vector<double>(num_inserts);
+    
+    //    std::cout << "Starting inserts" << std::endl;
+    
+    for (int i = 0; i < num_inserts; i++) {
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        lsmTree.insert_key(to_insert[i],i);
+        clock_gettime(CLOCK_MONOTONIC, &finish);
+        times.push_back((finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) / 1000000000.);
+    }
+    sort(times.begin(), times.end());
+    cout << "largest latency: " << times[times.size() - 1] << endl;
+    cout << "smallest latency: " << times[0] << endl;
+
+}
 int main(int argc, char *argv[]){
 
 //    insertLookupTest();
 //    updateDeleteTest();
 //    rangeTest();
-    concurrentLookupTest();
+//    concurrentLookupTest();
+    tailLatencyTest();
     return 0;
     
 }

@@ -280,12 +280,12 @@ public:
             bf_to_merge.push_back(filters[i]);
         }
 //        cout << "main thread want to merge to disk" << endl;
-        if (mergeThread.joinable()){
-//            cout << "waiting on thread..."<< endl;
-            mergeThread.join();
-        }
-        mergeThread = thread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
-//        merge_runs(runs_to_merge, bf_to_merge);
+//        if (mergeThread.joinable()){
+////            cout << "waiting on thread..."<< endl;
+//            mergeThread.join();
+//        }
+//        mergeThread = thread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
+        merge_runs(runs_to_merge, bf_to_merge);
         C_0.erase(C_0.begin(), C_0.begin() + _num_to_merge);
         filters.erase(filters.begin(), filters.begin() + _num_to_merge);
         

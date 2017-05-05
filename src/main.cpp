@@ -74,14 +74,14 @@ void insertLookupTest(){
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
     
-    const int num_inserts = 2000000;
+    const int num_inserts = 1000000;
     const int max_levels = 16;
     const int num_runs = 60;
-    const int buffer_capacity = 2000 * num_runs;
+    const int buffer_capacity = 800;
     const double bf_fp = .0005;
-    const int pageSize = 4096;
-    const int disk_runs_per_level = 1;
-    const double merge_fraction = 1;
+    const int pageSize = 512;
+    const int disk_runs_per_level = 5;
+    const double merge_fraction = .75;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
     std::vector<int> to_insert;
@@ -106,30 +106,30 @@ void insertLookupTest(){
     std::cout << "Time: " << total_insert << " s" << std::endl;
     std::cout << "Inserts per second: " << (int) num_inserts / total_insert << " s" << std::endl;
     
-//
-//    std::cout << "Starting lookups" << std::endl;
-//    clock_gettime(CLOCK_MONOTONIC, &start);
-////    lsmTree.printElts();
-//    for (int i = 0 ; i < num_inserts; i++) {
-//        if ( i % 100000 == 0 ) cout << "lookup " << i << endl;
-//        
-//        int lookup = lsmTree.lookup(to_insert[i]);
-////        cout << lookup << endl;
-//        assert(lookup == i);
-////        if (lookup != i)
-////            cout << "LOOKUP TEST FAILED ON ITERATION " << i << ". Got " << lookup << " but was expecting " << i << ".\n";
-//    }
-//    clock_gettime(CLOCK_MONOTONIC, &finish);
-//    double total_lookup = (finish.tv_sec - start.tv_sec);
-//    total_lookup += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-//    std::cout << "Time: " << total_lookup << " s" << std::endl;
-//    std::cout << "Lookups per second: " << (int) num_inserts / total_lookup << " s" << std::endl;
+
+    std::cout << "Starting lookups" << std::endl;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+//    lsmTree.printElts();
+    for (int i = 0 ; i < num_inserts; i++) {
+        if ( i % 100000 == 0 ) cout << "lookup " << i << endl;
+        
+        int lookup = lsmTree.lookup(to_insert[i]);
+//        cout << lookup << endl;
+        assert(lookup == i);
+//        if (lookup != i)
+//            cout << "LOOKUP TEST FAILED ON ITERATION " << i << ". Got " << lookup << " but was expecting " << i << ".\n";
+    }
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    double total_lookup = (finish.tv_sec - start.tv_sec);
+    total_lookup += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    std::cout << "Time: " << total_lookup << " s" << std::endl;
+    std::cout << "Lookups per second: " << (int) num_inserts / total_lookup << " s" << std::endl;
 }
 void runInOrderTest() {
     const int num_inserts = 1000000;
     const int max_levels = 16;
     const int num_runs = 16;
-    const int buffer_capacity = 1000000;
+    const int buffer_capacity = 1000;
     const double bf_fp = .2;
     const int pageSize = 4096;
     const int disk_runs_per_level = 10;
@@ -308,7 +308,7 @@ void updateDeleteTest(){
     const int num_inserts = 500000;
     const int max_levels = 16;
     const int num_runs = 20;
-    const int buffer_capacity = 1000 * num_runs;
+    const int buffer_capacity = 1000;
     const double bf_fp = .01;
     const int pageSize = 1024;
     const int disk_runs_per_level = 5;
@@ -358,7 +358,7 @@ void rangeTest(){
     const int num_inserts = 10000000;
     const int max_levels = 16;
     const int num_runs = 20;
-    const int buffer_capacity = 500 * num_runs;
+    const int buffer_capacity = 500;
     const double bf_fp = .01;
     const int pageSize = 512;
     const int disk_runs_per_level = 5;
@@ -408,7 +408,7 @@ void concurrentLookupTest(){
     const int num_lookups = 1000000;
     const int max_levels = 16;
     const int num_runs = 100;
-    const int buffer_capacity = 1400 * num_runs;
+    const int buffer_capacity = 1400;
     const double bf_fp = .001;
     const int pageSize = 512;
     const int disk_runs_per_level = 40;
@@ -489,7 +489,7 @@ void tailLatencyTest(){
     const int num_inserts = 10000000;
     const int max_levels = 16;
     const int num_runs = 200;
-    const int buffer_capacity = 1400 * num_runs;
+    const int buffer_capacity = 1400;
     const double bf_fp = .001;
     const int pageSize = 512;
     const int disk_runs_per_level = 2;
@@ -520,11 +520,11 @@ void tailLatencyTest(){
 }
 int main(int argc, char *argv[]){
 
-//    insertLookupTest();
+    insertLookupTest();
 //    updateDeleteTest();
 //    rangeTest();
 //    concurrentLookupTest();
-    tailLatencyTest();
+//    tailLatencyTest();
     return 0;
     
 }

@@ -117,7 +117,10 @@ public: // TODO make some of these private
     }
     
     ~DiskLevel<K,V>(){
+        for (int i = 0; i< runs.size(); ++i){
+            delete runs[i];
         }
+    }
     
     void addRuns(vector<DiskRun<K, V> *> &runList, const unsigned long runLen, bool lastLevel) {
         
@@ -141,8 +144,9 @@ public: // TODO make some of these private
                 }
             }
             else {
-                if (!lastLevel || runs[_activeRun]->map[j].value != V_TOMBSTONE){
-                    ++j;
+                ++j;
+                if ( j != -1 && lastLevel && runs[_activeRun]->map[j].value == V_TOMBSTONE){
+                    --j;
                 }
                 runs[_activeRun]->map[j] = val_run_pair.first;
             }

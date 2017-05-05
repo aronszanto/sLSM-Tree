@@ -24,11 +24,11 @@ using namespace std;
 
 struct timespec start, finish;
 double elapsed;
+
 struct LSMParams {
     const int num_inserts;
-    const int max_levels;
     const int num_runs;
-    const int buffer_capacity;
+    const int elts_per_run;
     const double bf_fp;
     const int pageSize;
     const int disk_runs_per_level;
@@ -199,25 +199,23 @@ void diskLevelTest(){
 //    auto disklevel = DiskLevel<int32_t,int32_t>(capacity, 4096, level);
 //    
 }
-void customTest(const int num_inserts, const int num_runs, const int buffer_capacity,  const double bf_fp, const double merge_frac, const int pageSize, const int diskRunsPerLevel){
+void customTest(LSMParams &lp, double &ips, double &lps){
     std::random_device                  rand_dev;
     std::mt19937                        generator(rand_dev());
     std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
     
-    
-    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_frac, bf_fp, pageSize, diskRunsPerLevel);
+    // unsigned long eltsPerRun, unsigned int numRuns, double merged_frac, double bf_fp, unsigned int pageSize, unsigned int diskRunsPerLevel
+    LSM<int32_t, int32_t> lsmTree =
+        LSM<int32_t, int32_t>(lp.elts_per_run, lp.num_runs, lp.merge_fraction, lp.bf_fp, lp.pageSize, lp.disk_runs_per_level);
     
     std::vector<int> to_insert;
-    for (int i = 0; i < num_inserts; i++) {
-        //        int insert = distribution(generator);
+    for (int i = 0; i < lp.num_inserts; i++) {
         to_insert.push_back(i);
     }
     shuffle(to_insert.begin(), to_insert.end(), generator);
     
-//    std::cout << "Starting inserts" << std::endl;
     clock_gettime(CLOCK_MONOTONIC, &start);
-    for (int i = 0; i < num_inserts; i++) {
-//        if ( i % 10000 == 0 ) cout << "insert " << i << endl;
+    for (int i = 0; i < lp.num_inserts; i++) {
         lsmTree.insert_key(to_insert[i],i);
     }
     clock_gettime(CLOCK_MONOTONIC, &finish);
@@ -226,42 +224,66 @@ void customTest(const int num_inserts, const int num_runs, const int buffer_capa
     
     clock_gettime(CLOCK_MONOTONIC, &start);
     
-    for (int i = 0 ; i < num_inserts; i++) {
+    for (int i = 0 ; i < lp.num_inserts; i++) {
         if ( i % 10000 == 0 )
-            cout << "lookup " << i << endl;
+//            cout << "lookup " << i << endl;
         int lookup = lsmTree.lookup(to_insert[i]);
     }
     clock_gettime(CLOCK_MONOTONIC, &finish);
     double total_lookup = (finish.tv_sec - start.tv_sec);
     total_lookup += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-    double ipersec = num_inserts / total_insert;
-    double lpersec = num_inserts / total_lookup;
-    
-    cout << num_inserts << "," << num_runs << "," << buffer_capacity << "," << bf_fp << "," << merge_frac << "," << pageSize << "," << ipersec << "," << lpersec <<  "," << total_insert << "," << total_lookup << endl;
+    double ipersec = lp.num_inserts / total_insert;
+    double lpersec = lp.num_inserts / total_lookup;
+    ips = ipersec;
+    lps = lpersec;
+    cout << lp.num_inserts << "," << lp.num_runs << "," << lp.elts_per_run << "," << lp.bf_fp << "," << lp.merge_fraction << "," << lp.pageSize << "," << lp.disk_runs_per_level << "," << ipersec << "," << lpersec <<  "," << total_insert << "," << total_lookup << endl;
 }
 void cartesianTest(){
-    vector<int> numins = {100000, 1000000};
-    vector<int> numruns = {25, 100, 500, 1000};
-    vector<int> buffercaps = {10000, 100000};
-    vector<double> bf_fp = {0.001, 0.1};
-    vector<double> merge_frac = {.2, .5, .8};
-    vector<int> pss = {100, 1000};
-    vector<int> drpl = {5, 10, 15, 20, 50};
+    cout << "num_inserts,num_runs,elts_per_run,BF_FP,merge_fraction,page_size,disk_runs_per_level,inserts_per_sec,lookups_per_sec,total_insert,total_lookup" << endl;
+    vector<int> numins = {300000};
+    vector<int> numruns = {20, 50, 100};
+    vector<int> eltspers = {500, 800, 1000};
+    vector<double> bf_fp = {0.0001, .001, .01};
+    vector<double> merge_frac = {.5, 1.0};
+    vector<int> pss = {512, 1024};
+    vector<int> drpl = {2, 5, 10, 20};
+    auto res = vector<tuple<double, double, LSMParams>>();
     
     for (int i = 0; i < numins.size(); i++)
         for(int n = 0; n < numruns.size(); n++)
-            for(int b = 0; b < buffercaps.size();b++)
+            for(int b = 0; b < eltspers.size();b++)
                 for(int bf = 0; bf < bf_fp.size(); bf++)
                     for (int m = 0; m < merge_frac.size(); m++)
                         for (int p = 0; p < pss.size(); p++)
-                            for (int d = 0; d < drpl.size(); d++)
-                                customTest(numins[i], numruns[n], buffercaps[b], bf_fp[bf], merge_frac[m], pss[p], drpl[d]);
+                            for (int d = 0; d < drpl.size(); d++){
+                // unsigned long eltsPerRun, unsigned int numRuns, double merged_frac, double bf_fp, unsigned int pageSize, unsigned int diskRunsPerLevel
+                                // struct LSMParams {
+//                                const int num_inserts;
+//                                const int num_runs;
+//                                const int elts_per_run;
+//                                const double bf_fp;
+//                                const int pageSize;
+//                                const int disk_runs_per_level;
+//                                const double merge_fraction;
+//                            };
+                                LSMParams lp = {numins[i], numruns[n], eltspers[b], bf_fp[bf], pss[p], drpl[d], merge_frac[m]};
+                                double ips, lps;
+                                customTest(lp, ips, lps);
+//                                res.push_back(tuple<double, double, LSMParams>(ips, lps, lp));
+                            }
+//    sort(res.begin(), res.end());
+//    int p10 = ceil(.10 * res.size());
+//    res.erase(res.begin() + p10, res.end());
+//    ofstream output("binary.data");
+//    output.write(static_cast<char *>(&(res[0])), res.size()*sizeof(tuple<double, double, LSMParams>));
+    
+    
 }
-void bfPerfTest(){
-    vector<double> numruns = {.00001, .000001};
-    for (int i = 0; i < numruns.size(); i++)
-        customTest(1000000,	100, 100000, numruns[i],	0.8,1000, 50);
-}
+//void bfPerfTest(){
+//    vector<double> numruns = {.00001, .000001};
+//    for (int i = 0; i < numruns.size(); i++)
+//        customTest(1000000,	100, 100000, numruns[i],	0.8,1000, 50);
+//}
 void fencePointerTest(){
 //  TODO REDO THIS TEST
 //    const long num_inserts = 1000 * 1000 * 1;
@@ -528,13 +550,383 @@ void tailLatencyTest(){
     cout << "smallest latency: " << times[0] << endl;
 
 }
+
+void hardCodeTest(int num_inserts, int num_runs, int elts_per_run, double bf_fp, double merge_fraction, int pageSize, int disk_runs_per_level){
+        std::random_device                  rand_dev;
+        std::mt19937                        generator(rand_dev());
+        std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
+        
+        // unsigned long eltsPerRun, unsigned int numRuns, double merged_frac, double bf_fp, unsigned int pageSize, unsigned int diskRunsPerLevel
+        LSM<int32_t, int32_t> lsmTree =
+        LSM<int32_t, int32_t>(elts_per_run, num_runs, merge_fraction, bf_fp, pageSize, disk_runs_per_level);
+        
+        std::vector<int> to_insert;
+        for (int i = 0; i < num_inserts; i++) {
+            to_insert.push_back(i);
+        }
+        shuffle(to_insert.begin(), to_insert.end(), generator);
+        
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        for (int i = 0; i < num_inserts; i++) {
+            lsmTree.insert_key(to_insert[i],i);
+        }
+        clock_gettime(CLOCK_MONOTONIC, &finish);
+        double total_insert = (finish.tv_sec - start.tv_sec);
+        total_insert += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+        
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        
+        for (int i = 0 ; i < num_inserts; i++) {
+            if ( i % 10000 == 0 )
+                //            cout << "lookup " << i << endl;
+                int lookup = lsmTree.lookup(to_insert[i]);
+        }
+        clock_gettime(CLOCK_MONOTONIC, &finish);
+        double total_lookup = (finish.tv_sec - start.tv_sec);
+        total_lookup += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+        double ipersec = num_inserts / total_insert;
+        double lpersec = num_inserts / total_lookup;
+        cout << num_inserts << "," << num_runs << "," << elts_per_run << "," << bf_fp << "," << merge_fraction << "," << pageSize << "," << disk_runs_per_level << "," << ipersec << "," << lpersec <<  "," << total_insert << "," << total_lookup << endl;
+}
 int main(int argc, char *argv[]){
 
-    insertLookupTest();
+//    insertLookupTest();
 //    updateDeleteTest();
 //    rangeTest();
 //    concurrentLookupTest();
 //    tailLatencyTest();
+    hardCodeTest(1000000,100,500,0.0100,1.0,512,10
+                 );
+    hardCodeTest(1000000,50,500,0.0100,1.0,1024,20
+                 );
+    hardCodeTest(1000000,100,500,0.0100,0.5,1024,10
+                 );
+    hardCodeTest(1000000,100,500,0.0010,0.5,512,10
+                 );
+    hardCodeTest(1000000,100,500,0.0010,1.0,512,20
+                 );
+    hardCodeTest(1000000,100,500,0.0010,0.5,1024,10
+                 );
+    hardCodeTest(1000000,100,500,0.0100,1.0,1024,10
+                 );
+    hardCodeTest(1000000,100,500,0.0100,1.0,1024,5
+                 );
+    hardCodeTest(1000000,100,500,0.0010,1.0,1024,10
+                 );
+    hardCodeTest(1000000,100,500,0.0010,1.0,512,10
+                 );
+    hardCodeTest(1000000,50,500,0.0001,1.0,512,20
+                 );
+    hardCodeTest(1000000,100,500,0.0100,1.0,512,5
+                 );
+    hardCodeTest(1000000,100,500,0.0010,1.0,1024,20
+                 );
+    hardCodeTest(1000000,100,500,0.0100,0.5,512,20
+                 );
+    hardCodeTest(1000000,100,500,0.0010,1.0,512,5
+                 );
+    hardCodeTest(1000000,100,500,0.0010,0.5,512,20
+                 );
+    hardCodeTest(1000000,100,500,0.0100,1.0,1024,20
+                 );
+    hardCodeTest(1000000,100,500,0.0100,0.5,1024,5
+                 );
+    hardCodeTest(1000000,100,500,0.0100,1.0,512,20
+                 );
+    hardCodeTest(1000000,100,500,0.0001,1.0,1024,10
+                 );
+    hardCodeTest(1000000,100,500,0.0100,0.5,512,10
+                 );
+    hardCodeTest(1000000,100,500,0.0100,0.5,512,5
+                 );
+    hardCodeTest(1000000,50,500,0.0010,1.0,512,20
+                 );
+    hardCodeTest(1000000,50,500,0.0100,1.0,512,20
+                 );
+    hardCodeTest(1000000,100,500,0.0001,0.5,512,20
+                 );
+    hardCodeTest(1000000,100,500,0.0010,0.5,1024,20
+                 );
+    hardCodeTest(1000000,100,500,0.0001,1.0,1024,5
+                 );
+    hardCodeTest(1000000,20,800,0.0010,1.0,512,2
+                 );
+    hardCodeTest(1000000,20,800,0.0001,1.0,1024,5
+                 );
+    hardCodeTest(1000000,20,800,0.0010,1.0,1024,5
+                 );
+    hardCodeTest(1000000,20,500,0.0010,1.0,1024,20
+                 );
+    hardCodeTest(1000000,20,800,0.0010,1.0,1024,10
+                 );
+    hardCodeTest(1000000,20,500,0.0100,1.0,1024,5
+                 );
+    hardCodeTest(1000000,20,500,0.0001,1.0,1024,5
+                 );
+    hardCodeTest(1000000,20,800,0.0100,1.0,1024,10
+                 );
+    hardCodeTest(1000000,20,500,0.0001,1.0,512,20
+                 );
+    hardCodeTest(1000000,20,500,0.0001,1.0,1024,10
+                 );
+    hardCodeTest(1000000,20,500,0.0100,1.0,512,20
+                 );
+    hardCodeTest(1000000,20,800,0.0010,1.0,512,20
+                 );
+    hardCodeTest(1000000,20,500,0.0001,1.0,512,5
+                 );
+    hardCodeTest(1000000,20,800,0.0001,1.0,512,2
+                 );
+    hardCodeTest(1000000,20,800,0.0100,1.0,512,5
+                 );
+    hardCodeTest(1000000,20,800,0.0001,1.0,512,20
+                 );
+    hardCodeTest(1000000,20,500,0.0001,0.5,1024,5
+                 );
+    hardCodeTest(1000000,20,1000,0.0010,1.0,1024,10
+                 );
+    hardCodeTest(1000000,20,1000,0.0001,1.0,1024,2
+                 );
+    hardCodeTest(1000000,20,500,0.0010,1.0,512,20
+                 );
+    hardCodeTest(1000000,20,500,0.0100,1.0,1024,20
+                 );
+    hardCodeTest(1000000,20,500,0.0100,1.0,1024,10
+                 );
+    hardCodeTest(1000000,20,500,0.0100,1.0,512,10
+                 );
+    hardCodeTest(1000000,20,500,0.0100,0.5,1024,10
+                 );
+    hardCodeTest(1000000,20,500,0.0010,0.5,1024,10
+                 );
+    hardCodeTest(1000000,20,800,0.0010,0.5,1024,20
+                 );
+    hardCodeTest(1000000,50,800,0.0001,1.0,512,10
+                 );
+    hardCodeTest(1000000,20,800,0.0100,0.5,512,20
+                 );
+    hardCodeTest(5000000,100,500,0.0100,1.0,512,10
+                 );
+    hardCodeTest(5000000,50,500,0.0100,1.0,1024,20
+                 );
+    hardCodeTest(5000000,100,500,0.0100,0.5,1024,10
+                 );
+    hardCodeTest(5000000,100,500,0.0010,0.5,512,10
+                 );
+    hardCodeTest(5000000,100,500,0.0010,1.0,512,20
+                 );
+    hardCodeTest(5000000,100,500,0.0010,0.5,1024,10
+                 );
+    hardCodeTest(5000000,100,500,0.0100,1.0,1024,10
+                 );
+    hardCodeTest(5000000,100,500,0.0100,1.0,1024,5
+                 );
+    hardCodeTest(5000000,100,500,0.0010,1.0,1024,10
+                 );
+    hardCodeTest(5000000,100,500,0.0010,1.0,512,10
+                 );
+    hardCodeTest(5000000,50,500,0.0001,1.0,512,20
+                 );
+    hardCodeTest(5000000,100,500,0.0100,1.0,512,5
+                 );
+    hardCodeTest(5000000,100,500,0.0010,1.0,1024,20
+                 );
+    hardCodeTest(5000000,100,500,0.0100,0.5,512,20
+                 );
+    hardCodeTest(5000000,100,500,0.0010,1.0,512,5
+                 );
+    hardCodeTest(5000000,100,500,0.0010,0.5,512,20
+                 );
+    hardCodeTest(5000000,100,500,0.0100,1.0,1024,20
+                 );
+    hardCodeTest(5000000,100,500,0.0100,0.5,1024,5
+                 );
+    hardCodeTest(5000000,100,500,0.0100,1.0,512,20
+                 );
+    hardCodeTest(5000000,100,500,0.0001,1.0,1024,10
+                 );
+    hardCodeTest(5000000,100,500,0.0100,0.5,512,10
+                 );
+    hardCodeTest(5000000,100,500,0.0100,0.5,512,5
+                 );
+    hardCodeTest(5000000,50,500,0.0010,1.0,512,20
+                 );
+    hardCodeTest(5000000,50,500,0.0100,1.0,512,20
+                 );
+    hardCodeTest(5000000,100,500,0.0001,0.5,512,20
+                 );
+    hardCodeTest(5000000,100,500,0.0010,0.5,1024,20
+                 );
+    hardCodeTest(5000000,100,500,0.0001,1.0,1024,5
+                 );
+    hardCodeTest(5000000,20,800,0.0010,1.0,512,2
+                 );
+    hardCodeTest(5000000,20,800,0.0001,1.0,1024,5
+                 );
+    hardCodeTest(5000000,20,800,0.0010,1.0,1024,5
+                 );
+    hardCodeTest(5000000,20,500,0.0010,1.0,1024,20
+                 );
+    hardCodeTest(5000000,20,800,0.0010,1.0,1024,10
+                 );
+    hardCodeTest(5000000,20,500,0.0100,1.0,1024,5
+                 );
+    hardCodeTest(5000000,20,500,0.0001,1.0,1024,5
+                 );
+    hardCodeTest(5000000,20,800,0.0100,1.0,1024,10
+                 );
+    hardCodeTest(5000000,20,500,0.0001,1.0,512,20
+                 );
+    hardCodeTest(5000000,20,500,0.0001,1.0,1024,10
+                 );
+    hardCodeTest(5000000,20,500,0.0100,1.0,512,20
+                 );
+    hardCodeTest(5000000,20,800,0.0010,1.0,512,20
+                 );
+    hardCodeTest(5000000,20,500,0.0001,1.0,512,5
+                 );
+    hardCodeTest(5000000,20,800,0.0001,1.0,512,2
+                 );
+    hardCodeTest(5000000,20,800,0.0100,1.0,512,5
+                 );
+    hardCodeTest(5000000,20,800,0.0001,1.0,512,20
+                 );
+    hardCodeTest(5000000,20,500,0.0001,0.5,1024,5
+                 );
+    hardCodeTest(5000000,20,1000,0.0010,1.0,1024,10
+                 );
+    hardCodeTest(5000000,20,1000,0.0001,1.0,1024,2
+                 );
+    hardCodeTest(5000000,20,500,0.0010,1.0,512,20
+                 );
+    hardCodeTest(5000000,20,500,0.0100,1.0,1024,20
+                 );
+    hardCodeTest(5000000,20,500,0.0100,1.0,1024,10
+                 );
+    hardCodeTest(5000000,20,500,0.0100,1.0,512,10
+                 );
+    hardCodeTest(5000000,20,500,0.0100,0.5,1024,10
+                 );
+    hardCodeTest(5000000,20,500,0.0010,0.5,1024,10
+                 );
+    hardCodeTest(5000000,20,800,0.0010,0.5,1024,20
+                 );
+    hardCodeTest(5000000,50,800,0.0001,1.0,512,10
+                 );
+    hardCodeTest(5000000,20,800,0.0100,0.5,512,20
+                 );
+    hardCodeTest(10000000,100,500,0.0100,1.0,512,10
+                 );
+    hardCodeTest(10000000,50,500,0.0100,1.0,1024,20
+                 );
+    hardCodeTest(10000000,100,500,0.0100,0.5,1024,10
+                 );
+    hardCodeTest(10000000,100,500,0.0010,0.5,512,10
+                 );
+    hardCodeTest(10000000,100,500,0.0010,1.0,512,20
+                 );
+    hardCodeTest(10000000,100,500,0.0010,0.5,1024,10
+                 );
+    hardCodeTest(10000000,100,500,0.0100,1.0,1024,10
+                 );
+    hardCodeTest(10000000,100,500,0.0100,1.0,1024,5
+                 );
+    hardCodeTest(10000000,100,500,0.0010,1.0,1024,10
+                 );
+    hardCodeTest(10000000,100,500,0.0010,1.0,512,10
+                 );
+    hardCodeTest(10000000,50,500,0.0001,1.0,512,20
+                 );
+    hardCodeTest(10000000,100,500,0.0100,1.0,512,5
+                 );
+    hardCodeTest(10000000,100,500,0.0010,1.0,1024,20
+                 );
+    hardCodeTest(10000000,100,500,0.0100,0.5,512,20
+                 );
+    hardCodeTest(10000000,100,500,0.0010,1.0,512,5
+                 );
+    hardCodeTest(10000000,100,500,0.0010,0.5,512,20
+                 );
+    hardCodeTest(10000000,100,500,0.0100,1.0,1024,20
+                 );
+    hardCodeTest(10000000,100,500,0.0100,0.5,1024,5
+                 );
+    hardCodeTest(10000000,100,500,0.0100,1.0,512,20
+                 );
+    hardCodeTest(10000000,100,500,0.0001,1.0,1024,10
+                 );
+    hardCodeTest(10000000,100,500,0.0100,0.5,512,10
+                 );
+    hardCodeTest(10000000,100,500,0.0100,0.5,512,5
+                 );
+    hardCodeTest(10000000,50,500,0.0010,1.0,512,20
+                 );
+    hardCodeTest(10000000,50,500,0.0100,1.0,512,20
+                 );
+    hardCodeTest(10000000,100,500,0.0001,0.5,512,20
+                 );
+    hardCodeTest(10000000,100,500,0.0010,0.5,1024,20
+                 );
+    hardCodeTest(10000000,100,500,0.0001,1.0,1024,5
+                 );
+    hardCodeTest(10000000,20,800,0.0010,1.0,512,2
+                 );
+    hardCodeTest(10000000,20,800,0.0001,1.0,1024,5
+                 );
+    hardCodeTest(10000000,20,800,0.0010,1.0,1024,5
+                 );
+    hardCodeTest(10000000,20,500,0.0010,1.0,1024,20
+                 );
+    hardCodeTest(10000000,20,800,0.0010,1.0,1024,10
+                 );
+    hardCodeTest(10000000,20,500,0.0100,1.0,1024,5
+                 );
+    hardCodeTest(10000000,20,500,0.0001,1.0,1024,5
+                 );
+    hardCodeTest(10000000,20,800,0.0100,1.0,1024,10
+                 );
+    hardCodeTest(10000000,20,500,0.0001,1.0,512,20
+                 );
+    hardCodeTest(10000000,20,500,0.0001,1.0,1024,10
+                 );
+    hardCodeTest(10000000,20,500,0.0100,1.0,512,20
+                 );
+    hardCodeTest(10000000,20,800,0.0010,1.0,512,20
+                 );
+    hardCodeTest(10000000,20,500,0.0001,1.0,512,5
+                 );
+    hardCodeTest(10000000,20,800,0.0001,1.0,512,2
+                 );
+    hardCodeTest(10000000,20,800,0.0100,1.0,512,5
+                 );
+    hardCodeTest(10000000,20,800,0.0001,1.0,512,20
+                 );
+    hardCodeTest(10000000,20,500,0.0001,0.5,1024,5
+                 );
+    hardCodeTest(10000000,20,1000,0.0010,1.0,1024,10
+                 );
+    hardCodeTest(10000000,20,1000,0.0001,1.0,1024,2
+                 );
+    hardCodeTest(10000000,20,500,0.0010,1.0,512,20
+                 );
+    hardCodeTest(10000000,20,500,0.0100,1.0,1024,20
+                 );
+    hardCodeTest(10000000,20,500,0.0100,1.0,1024,10
+                 );
+    hardCodeTest(10000000,20,500,0.0100,1.0,512,10
+                 );
+    hardCodeTest(10000000,20,500,0.0100,0.5,1024,10
+                 );
+    hardCodeTest(10000000,20,500,0.0010,0.5,1024,10
+                 );
+    hardCodeTest(10000000,20,800,0.0010,0.5,1024,20
+                 );
+    hardCodeTest(10000000,50,800,0.0001,1.0,512,10
+                 );
+    hardCodeTest(10000000,20,800,0.0100,0.5,512,20);
+//    cartesianTest();
+    
+    
     return 0;
     
 }

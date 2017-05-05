@@ -102,6 +102,7 @@ public:
         
     }
     ~DiskRun<K,V>(){
+        fsync(fd);
         doUnmap();
         
         if (remove(_filename.c_str())){

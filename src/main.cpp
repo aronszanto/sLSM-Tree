@@ -594,7 +594,9 @@ int main(int argc, char *argv[]){
 //    concurrentLookupTest();
 //    tailLatencyTest();
 //    cartesianTest();
-    hardCodeTest(1000000000,20,800,0.00100,1.0,1024,20);
+//    hardCodeTest(1000000000,20,800,0.00100,1.0,1024,20);
+    
+    
     
     
     return 0;

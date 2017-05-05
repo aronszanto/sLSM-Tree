@@ -608,11 +608,14 @@ void loadFromBin(LSM<int, int> &lsm, string filename){
     assert(num == size / sizeof(int));
     
     int *ptr = new_array;
-    while (ptr + 1){
-        int k = *ptr;
-        int v = *(ptr + 1);
+    int read = 0;
+    int k,v;
+    while (read + 1 < num){
+        k = *ptr;
+        v = *(ptr + 1);
         lsm.insert_key(k, v);
         ptr += 2;
+        read += 2;
     }
 }
 void queryLine(LSM<int, int> &lsm, const string &line, vector<string> &strings){
@@ -683,19 +686,18 @@ void queryLine(LSM<int, int> &lsm, const string &line, vector<string> &strings){
 int main(int argc, char *argv[]){
 
 //    insertLookupTest();
-    updateDeleteTest();
+//    updateDeleteTest();
 //    rangeTest();
 //    concurrentLookupTest();
 //    tailLatencyTest();
 //    cartesianTest();
 //    hardCodeTest(1000000000,20,800,0.00100,1.0,1024,20);
 
-//    auto lsm = LSM<int, int>(800,20,1.0,0.00100,1024,20);
-//    auto strings = vector<string>(3);
-//    queryLine(lsm, "p 31 31000", strings);
-//    cout << strings[0] << endl;
-//    cout << strings[1] << endl;
-//    cout << strings[2] << endl;
+    auto lsm = LSM<int, int>(800,20,1.0,0.00100,1024,20);
+    auto strings = vector<string>(3);
+    queryLine(lsm, "l test.bin", strings);
+
+
 
     
     

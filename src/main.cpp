@@ -25,6 +25,7 @@ using namespace std;
 struct timespec start, finish;
 double elapsed;
 
+
 void bloomFilterTest(){
     std::random_device                  rand_dev;
     std::mt19937                        generator(rand_dev());

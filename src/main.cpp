@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <ctime>
 #include <iostream>
+#include <fstream>
 #include <cstdint>
 #include <math.h>
 #include <random>
@@ -697,14 +698,28 @@ int main(int argc, char *argv[]){
 
     auto lsm = LSM<int, int>(800,20,1.0,0.00100,1024,20);
     auto strings = vector<string>(3);
-//    cout << "LSM Tree DSL Interactive Mode" << endl;
-//    while (true){
-//        cout << "> ";
-//        string input;
-//        getline(cin, input);
-//        queryLine(lsm, input, strings);
-//    }
-
+    if (argc == 1){
+    cout << "LSM Tree DSL Interactive Mode" << endl;
+        while (true){
+            cout << "> ";
+            string input;
+            getline(cin, input);
+            queryLine(lsm, input, strings);
+        }
+    }
+    else{
+        string line;
+        ifstream f;
+        f.open(argv[1]);
+        
+        if(!f.is_open()) {
+            perror("Error open");
+            exit(EXIT_FAILURE);
+        }
+        while(getline(f, line)) {
+            queryLine(lsm, line, strings);
+        }
+    }
 
 
 

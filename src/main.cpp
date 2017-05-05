@@ -586,6 +586,24 @@ void hardCodeTest(int num_inserts, int num_runs, int elts_per_run, double bf_fp,
         double lpersec = num_inserts / total_lookup;
         cout << num_inserts << "," << num_runs << "," << elts_per_run << "," << bf_fp << "," << merge_fraction << "," << pageSize << "," << disk_runs_per_level << "," << ipersec << "," << lpersec <<  "," << total_insert << "," << total_lookup << endl;
 }
+
+void queryLine(LSM<int, int> &lsm, string line, vector<string> &strings){
+    unsigned long pos = line.find(' ');
+    unsigned long ip = 0;
+    strings.clear();
+    
+    // Decompose statement
+    while( pos != string::npos ) {
+        strings.push_back( line.substr( ip, pos - ip + 1 ) );
+        ip = pos + 1;
+        
+        pos = line.find( ' ', ip );
+    }
+    
+    // Add the last one
+    strings.push_back( line.substr( ip, (pos < line.size() ? pos : line.size()) - ip + 1 ) );
+
+}
 int main(int argc, char *argv[]){
 
 //    insertLookupTest();

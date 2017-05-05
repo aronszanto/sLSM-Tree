@@ -242,5 +242,11 @@ public: // TODO make some of these private
         return (V) NULL;
         
     }
+    unsigned long num_elements(){
+        unsigned long total = 0;
+        for (int i = 0; i < _activeRun; ++i)
+            total += runs[i]->getCapacity();
+        return total;
+    }
 };
 #endif /* diskLevel_h */

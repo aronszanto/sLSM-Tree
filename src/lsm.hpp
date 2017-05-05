@@ -33,7 +33,7 @@ class LSM {
 public:
     V V_TOMBSTONE = (V) TOMBSTONE;
     mutex *mergeLock;
-
+    
     vector<Run<K,V> *> C_0;
     
     vector<BloomFilter<K> *> filters;
@@ -45,6 +45,7 @@ public:
     LSM<K,V>(unsigned long eltsPerRun, unsigned int numRuns, double merged_frac, double bf_fp, unsigned int pageSize, unsigned int diskRunsPerLevel): _eltsPerRun(eltsPerRun), _num_runs(numRuns), _frac_runs_merged(merged_frac), _diskRunsPerLevel(diskRunsPerLevel), _num_to_merge(ceil(_frac_runs_merged * _num_runs)), _pageSize(pageSize){
         _activeRun = 0;
         _bfFalsePositiveRate = bf_fp;
+        _n = 0;
         
         
         DiskLevel<K,V> * diskLevel = new DiskLevel<K, V>(pageSize, 1, _num_to_merge * _eltsPerRun, _diskRunsPerLevel, ceil(_diskRunsPerLevel * _frac_runs_merged), _bfFalsePositiveRate);
@@ -93,9 +94,10 @@ public:
         //        cout << "inserting key " << key << " to run " << _activeRun << endl;
         C_0[_activeRun]->insert_key(key,value);
         filters[_activeRun]->add(&key, sizeof(K));
+        ++_n;
     }
     
-    V lookup(K &key){
+    bool lookup(K &key, V &value){
         bool found = false;
         // TODO keep track of min/max in runs?
         //        cout << "looking for key " << key << endl;
@@ -106,7 +108,9 @@ public:
             
             V lookupRes = C_0[i]->lookup(key, found);
             if (found) {
-                return lookupRes == V_TOMBSTONE ? (V) NULL : lookupRes;
+                value = value == V_TOMBSTONE ? (V) NULL : lookupRes;
+                return value;
+                
             }
         }
         if (mergeThread.joinable()){
@@ -118,10 +122,11 @@ public:
             
             V lookupRes = diskLevels[i]->lookup(key, found);
             if (found) {
-                return lookupRes == V_TOMBSTONE ? (V) NULL : lookupRes;
+                value = value == V_TOMBSTONE ? (V) NULL : lookupRes;
+                return value;
             }
         }
-        return (V) NULL;
+        return false;
     }
     
     void delete_key(K &key){
@@ -179,14 +184,10 @@ public:
     }
     
     
-    unsigned long long num_elements(){
-        unsigned long long total = 0;
-        for (int i = 0; i <= _activeRun; ++i)
-            total += C_0[i]->num_elements(); // TODO NEED TO GET DISK ELTS TOO
-        return total;
-    }
     
     void printElts(){
+        if (mergeThread.joinable())
+            mergeThread.join();
         cout << "MEMORY BUFFER" << endl;
         for (int i = 0; i <= _activeRun; i++){
             cout << "MEMORY BUFFER RUN " << i << endl;
@@ -210,6 +211,17 @@ public:
             }
             cout << endl;
         }
+        
+    }
+    void printStats(){
+        cout << "Number of Elements (Including Deletes): " << size() << endl;
+        cout << "Number of Elements in Buffer: " << num_buffer() << endl;
+        
+        for (int i = 0; i < diskLevels.size(); ++i){
+            cout << "Number of Elements in Disk Level " << i << ": " << diskLevels[i]->num_elements() << endl;
+        }
+        cout << "KEY VALUE DUMP: " << endl;
+        printElts();
     }
     
     //private: // TODO MAKE PRIVATE
@@ -222,6 +234,7 @@ public:
     unsigned int _diskRunsPerLevel;
     unsigned int _num_to_merge;
     unsigned int _pageSize;
+    unsigned long _n;
     thread mergeThread;
     
     void mergeRunsToLevel(int level) {
@@ -304,7 +317,17 @@ public:
             filters.push_back(bf);
         }
     }
-    
+    unsigned long num_buffer(){
+        if (mergeThread.joinable())
+            mergeThread.join();
+        unsigned long total = 0;
+        for (int i = 0; i <= _activeRun; ++i)
+            total += C_0[i]->num_elements();
+        return total;
+    }
+    unsigned long size(){
+        return _n;
+    }
 
 };
 

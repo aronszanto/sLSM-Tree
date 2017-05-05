@@ -121,7 +121,7 @@ public:
             }
         }
         
-        _n++;
+        ++_n;
     }
     
     void delete_key(const K &searchKey) {

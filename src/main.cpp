@@ -119,11 +119,11 @@ void insertLookupTest(){
 
     std::cout << "Starting lookups" << std::endl;
     clock_gettime(CLOCK_MONOTONIC, &start);
-//    lsmTree.printElts();
+    int lookup;
     for (int i = 0 ; i < num_inserts; i++) {
-        if ( i % 100000 == 0 ) cout << "lookup " << i << endl;
-        
-        int lookup = lsmTree.lookup(to_insert[i]);
+//        if ( i % 100000 == 0 ) cout << "lookup " << i << endl;
+        ;
+        lsmTree.lookup(to_insert[i], lookup);
 //        cout << lookup << endl;
         assert(lookup == i);
 //        if (lookup != i)
@@ -223,9 +223,10 @@ void customTest(LSMParams &lp, double &ips, double &lps){
     total_insert += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
     
     clock_gettime(CLOCK_MONOTONIC, &start);
-    
+    int lookup;
     for (int i = 0 ; i < lp.num_inserts; i++) {
-        int lookup = lsmTree.lookup(to_insert[i]);
+        
+        lsmTree.lookup(to_insert[i], lookup);
     }
     clock_gettime(CLOCK_MONOTONIC, &finish);
     double total_lookup = (finish.tv_sec - start.tv_sec);
@@ -335,13 +336,13 @@ void fencePointerTest(){
 }
 
 void updateDeleteTest(){
-    const int num_inserts = 500000;
+    const int num_inserts = 500;
     const int max_levels = 16;
-    const int num_runs = 20;
-    const int buffer_capacity = 1000;
+    const int num_runs = 3;
+    const int buffer_capacity = 50;
     const double bf_fp = .01;
     const int pageSize = 1024;
-    const int disk_runs_per_level = 5;
+    const int disk_runs_per_level = 2;
     const double merge_fraction = 1;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
@@ -353,9 +354,11 @@ void updateDeleteTest(){
     for (int i = 0; i < num_inserts; i++) {
         lsmTree.insert_key(i, to_insert[i]);
     }
-    
+    int lookup;
     for (int i = 0; i < num_inserts; i++) {
-        assert(to_insert[i] == lsmTree.lookup(i));
+        
+        lsmTree.lookup(i, lookup);
+        assert(to_insert[i] == lookup);
     }
     
     for (int i = 0; i < num_inserts; i++) {
@@ -367,7 +370,8 @@ void updateDeleteTest(){
     }
     
     for (int i = 0; i < num_inserts; i++) {
-        assert(to_insert[i] == lsmTree.lookup(i));
+        lsmTree.lookup(i, lookup);
+        assert(to_insert[i] == lookup);
     }
 
     for (int i = 0; i < num_inserts; i++) {
@@ -379,8 +383,9 @@ void updateDeleteTest(){
         lsmTree.insert_key(i,  negone);
     }
     for (int i = 0; i < num_inserts * 10; i++) {
-        auto l = lsmTree.lookup(i);
-        assert(l == -1);
+        
+        lsmTree.lookup(i, lookup);
+        assert(lookup == -1);
     }
     
 }
@@ -485,10 +490,10 @@ void concurrentLookupTest(){
         for (int t = 0; t < nthreads; t++){
             threads[t] = thread ([&] {
                 unsigned m = rand();
-                
+                int lookup;
                 for (int i = 0 ; i < num_lookups; i++) {
                     //                cout << (1737119 * m * i) % to_insert.size() << endl;
-                    lsmTree.lookup(to_insert[(1737119 * m * i) % to_insert.size()]);
+                    lsmTree.lookup(to_insert[(1737119 * m * i) % to_insert.size()], lookup);
                 }
                 
             });
@@ -573,11 +578,10 @@ void hardCodeTest(int num_inserts, int num_runs, int elts_per_run, double bf_fp,
         total_insert += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
         
         clock_gettime(CLOCK_MONOTONIC, &start);
-        
+        int lookup;
         for (int i = 0 ; i < num_inserts; i++) {
-//            if ( i % 10000 == 0 )
-                //            cout << "lookup " << i << endl;
-                int lookup = lsmTree.lookup(to_insert[i]);
+
+            lsmTree.lookup(to_insert[i], lookup);
         }
         clock_gettime(CLOCK_MONOTONIC, &finish);
         double total_lookup = (finish.tv_sec - start.tv_sec);
@@ -586,8 +590,32 @@ void hardCodeTest(int num_inserts, int num_runs, int elts_per_run, double bf_fp,
         double lpersec = num_inserts / total_lookup;
         cout << num_inserts << "," << num_runs << "," << elts_per_run << "," << bf_fp << "," << merge_fraction << "," << pageSize << "," << disk_runs_per_level << "," << ipersec << "," << lpersec <<  "," << total_insert << "," << total_lookup << endl;
 }
-
-void queryLine(LSM<int, int> &lsm, string line, vector<string> &strings){
+void loadFromBin(LSM<int, int> &lsm, string filename){
+    FILE *intArrayFile;
+    char *buffer;
+    long size;
+    
+    
+    intArrayFile = fopen(filename.c_str(), "rb");
+    fseek(intArrayFile, 0, SEEK_END);
+    size = ftell(intArrayFile);
+    
+    int new_array[size / sizeof(int)];
+    
+    rewind(intArrayFile);
+    size_t num;
+    num = fread(new_array, sizeof(int), size/sizeof(int) + 1, intArrayFile);
+    assert(num == size / sizeof(int));
+    
+    int *ptr = new_array;
+    while (ptr + 1){
+        int k = *ptr;
+        int v = *(ptr + 1);
+        lsm.insert_key(k, v);
+        ptr += 2;
+    }
+}
+void queryLine(LSM<int, int> &lsm, const string &line, vector<string> &strings){
     unsigned long pos = line.find(' ');
     unsigned long ip = 0;
     strings.clear();
@@ -602,18 +630,73 @@ void queryLine(LSM<int, int> &lsm, string line, vector<string> &strings){
     
     // Add the last one
     strings.push_back( line.substr( ip, (pos < line.size() ? pos : line.size()) - ip + 1 ) );
+    
+    switch ((char) strings[0].c_str()[0]){
+        case 'p':{
+            int pk = stoi(strings[1]);
+            int v = stoi(strings[2]);
+            lsm.insert_key(pk, v);
+        }
+            break;
+        case 'g': {
+            int lk = stoi(strings[1]);
+            int v;
+            bool found = lsm.lookup(lk, v);
+            if (found) {
+                cout << v;
+            }
+            
+            cout << endl;
+        }
+            break;
+        case 'r':{
+            int lk1 = stoi(strings[1]);
+            int lk2 = stoi(strings[2]);
+            auto res = lsm.range(lk1, lk2);
+            if (!res.empty()){
+                for (int i = 0; i < res.size(); ++i){
+                    cout << res[i].key << ":" << res[i].value << " ";
+                }
+            }
+            cout << endl;
+
+        }
+            break;
+        case 'd': {
+            int dk = stoi(strings[1]);
+            lsm.delete_key(dk);
+        }
+            break;
+        case 'l': {
+            string ls = strings[1];
+            loadFromBin(lsm, ls);
+        }
+            break;
+        case 's': {
+            lsm.printStats();
+        }
+            
+
+    }
 
 }
 int main(int argc, char *argv[]){
 
 //    insertLookupTest();
-//    updateDeleteTest();
+    updateDeleteTest();
 //    rangeTest();
 //    concurrentLookupTest();
 //    tailLatencyTest();
 //    cartesianTest();
 //    hardCodeTest(1000000000,20,800,0.00100,1.0,1024,20);
-    
+
+//    auto lsm = LSM<int, int>(800,20,1.0,0.00100,1024,20);
+//    auto strings = vector<string>(3);
+//    queryLine(lsm, "p 31 31000", strings);
+//    cout << strings[0] << endl;
+//    cout << strings[1] << endl;
+//    cout << strings[2] << endl;
+
     
     
     

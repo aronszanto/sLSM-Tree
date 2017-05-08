@@ -82,25 +82,26 @@ void bloomFilterTest(){
 void insertLookupTest(){
     std::random_device                  rand_dev;
     std::mt19937                        generator(rand_dev());
-    std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
+//    std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
+    std::normal_distribution<double>  distribution(0, 10000000);
+
     
-    
-    const int num_inserts = 1000000;
+    const int num_inserts = 10000000;
     const int max_levels = 16;
-    const int num_runs = 60;
+    const int num_runs = 20;
     const int buffer_capacity = 800;
-    const double bf_fp = .0005;
+    const double bf_fp = .0001;
     const int pageSize = 512;
     const int disk_runs_per_level = 5;
-    const double merge_fraction = .75;
+    const double merge_fraction = 1;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
     std::vector<int> to_insert;
     for (int i = 0; i < num_inserts; i++) {
-//        int insert = distribution(generator);
-        to_insert.push_back(i);
+        int insert = static_cast<int>(distribution(generator));
+        to_insert.push_back(insert);
     }
-    shuffle(to_insert.begin(), to_insert.end(), generator);
+//    shuffle(to_insert.begin(), to_insert.end(), generator);
 
     std::cout << "Starting inserts" << std::endl;
     clock_gettime(CLOCK_MONOTONIC, &start);
@@ -123,7 +124,7 @@ void insertLookupTest(){
     int lookup;
     for (int i = 0 ; i < num_inserts; i++) {
         lsmTree.lookup(to_insert[i], lookup);
-        assert(lookup == i);
+//        assert(lookup == i);
     }
     clock_gettime(CLOCK_MONOTONIC, &finish);
     double total_lookup = (finish.tv_sec - start.tv_sec);
@@ -431,29 +432,32 @@ void rangeTest(){
 //    lsmTree.printElts();
 }
 
-void concurrentLookupTest(){
+void concurrentLookupTest(double iv){
     std::random_device                  rand_dev;
     std::mt19937                        generator(rand_dev());
-    std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
+    std::normal_distribution<double>  distribution1(0, iv);
     
     
-    const int num_inserts = 1000000;
-    const int num_lookups = 1000000;
+    const int num_inserts = 10000000;
+    const int num_lookups = 10000000;
     const int max_levels = 16;
-    const int num_runs = 100;
-    const int buffer_capacity = 1400;
+    const int num_runs = 20;
+    const int buffer_capacity = 800;
     const double bf_fp = .001;
     const int pageSize = 512;
-    const int disk_runs_per_level = 40;
+    const int disk_runs_per_level = 10;
     const double merge_fraction = 1;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
     std::vector<int> to_insert;
+    vector<int> to_lookup;
     for (int i = 0; i < num_inserts; i++) {
-        //        int insert = distribution(generator);
-        to_insert.push_back(i);
+        int insert = (int) distribution1(generator);
+        to_insert.push_back(insert);
     }
-    shuffle(to_insert.begin(), to_insert.end(), generator);
+    
+   
+//    shuffle(to_insert.begin(), to_insert.end(), generator);
     
 //    std::cout << "Starting inserts" << std::endl;
     clock_gettime(CLOCK_MONOTONIC, &start);
@@ -468,48 +472,58 @@ void concurrentLookupTest(){
     total_insert += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 //    std::cout << "Time: " << total_insert << " s" << std::endl;
 //    std::cout << "Inserts per second: " << (int) num_inserts / total_insert << " s" << std::endl;
+    cout << "iv ips" << endl;
+    cout << iv << " " << (int) num_inserts / total_insert << endl;
     
     
-    
+    sleep(2);
 //    std::cout << "Starting lookups" << std::endl;
 //    int nthreads = nt;
-    cout << "nthreads time lookups/sec" << endl;
-    for (int i = 0; i <= 50; i += 2){
-        if (i ==0)
-            continue;
-        struct timespec start, finish;
+    cout << "variance nthreads time lookups/sec" << endl;
+    for (double lv = 10; lv < num_lookups * 2; lv *= 10){
+        std::normal_distribution<double>  distribution2(0, lv);
         
-        clock_gettime(CLOCK_MONOTONIC, &start);
-        int nthreads = i;
-
-        auto threads = vector<thread>(nthreads);
-        
-        
-        for (int t = 0; t < nthreads; t++){
-            threads[t] = thread ([&] {
-                unsigned m = rand();
-                int lookup;
-                for (int i = 0 ; i < num_lookups; i++) {
-                    //                cout << (1737119 * m * i) % to_insert.size() << endl;
-                    lsmTree.lookup(to_insert[(1737119 * m * i) % to_insert.size()], lookup);
-                }
-                
-            });
+        for (int i = 0; i < num_lookups; i++) {
+            int lookup = (int) distribution2(generator);
+            to_lookup.push_back(lookup);
         }
-        for (int t = 0; t < nthreads; t++)
-            threads[t].join();
         
-        
-        
-        clock_gettime(CLOCK_MONOTONIC, &finish);
-        
-        double total_lookup = (finish.tv_sec - start.tv_sec);
-        total_lookup += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-       
-//        cout << "Number of Threads: " << nthreads << endl;
-    //    std::cout << "Time: " << total_lookup << " s" << std::endl;
-//        std::cout << "Lookups per second: " << (int) nthreads * num_lookups / total_lookup << " s" << std::endl;
-        std::cout << nthreads << " " << total_lookup << " " << (int) nthreads * num_lookups / total_lookup << endl;
+        for (int i = 1; i <= 32; i += 5){
+
+            struct timespec start, finish;
+            
+            clock_gettime(CLOCK_MONOTONIC, &start);
+            int nthreads = i;
+
+            auto threads = vector<thread>(nthreads);
+            
+            
+            for (int t = 0; t < nthreads; t++){
+                threads[t] = thread ([&] {
+                    unsigned m = rand();
+                    int lookup;
+                    for (int i = 0 ; i < num_lookups; i++) {
+                        //                cout << (1737119 * m * i) % to_insert.size() << endl;
+                        lsmTree.lookup(to_lookup[(1737119 * m * i) % to_lookup.size()], lookup);
+                    }
+                    
+                });
+            }
+            for (int t = 0; t < nthreads; t++)
+                threads[t].join();
+            
+            
+            
+            clock_gettime(CLOCK_MONOTONIC, &finish);
+            
+            double total_lookup = (finish.tv_sec - start.tv_sec);
+            total_lookup += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+           
+    //        cout << "Number of Threads: " << nthreads << endl;
+        //    std::cout << "Time: " << total_lookup << " s" << std::endl;
+    //        std::cout << "Lookups per second: " << (int) nthreads * num_lookups / total_lookup << " s" << std::endl;
+            std::cout << lv << " " << nthreads << " " << total_lookup << " " << (int) nthreads * num_lookups / total_lookup << endl;
+        }
     }
 }
 
@@ -643,23 +657,23 @@ void queryLine(LSM<int, int> &lsm, const string &line, vector<string> &strings){
             int lk = stoi(strings[1]);
             int v;
             bool found = lsm.lookup(lk, v);
-            if (found) {
-                cout << v;
-            }
-            
-            cout << endl;
+//            if (found) {
+//                cout << v;
+//            }
+//            
+//            cout << endl;
         }
             break;
         case 'r':{
             int lk1 = stoi(strings[1]);
             int lk2 = stoi(strings[2]);
             auto res = lsm.range(lk1, lk2);
-            if (!res.empty()){
-                for (int i = 0; i < res.size(); ++i){
-                    cout << res[i].key << ":" << res[i].value << " ";
-                }
-            }
-            cout << endl;
+//            if (!res.empty()){
+//                for (int i = 0; i < res.size(); ++i){
+//                    cout << res[i].key << ":" << res[i].value << " ";
+//                }
+//            }
+//            cout << endl;
 
         }
             break;
@@ -686,35 +700,38 @@ int main(int argc, char *argv[]){
 //    insertLookupTest();
 //    updateDeleteTest();
 //    rangeTest();
-//    concurrentLookupTest();
+    for (double d = 10; d < 100000000; d *= 10)
+        concurrentLookupTest(d);
 //    tailLatencyTest();
 //    cartesianTest();
 //    hardCodeTest(1000000000,20,800,0.00100,1.0,1024,20);
-
-    auto lsm = LSM<int, int>(800,20,1.0,0.00100,1024,20);
-    auto strings = vector<string>(3);
-    if (argc == 1){
-    cout << "LSM Tree DSL Interactive Mode" << endl;
-        while (true){
-            cout << "> ";
-            string input;
-            getline(cin, input);
-            queryLine(lsm, input, strings);
-        }
-    }
-    else{
-        string line;
-        ifstream f;
-        f.open(argv[1]);
-        
-        if(!f.is_open()) {
-            perror("Error open");
-            exit(EXIT_FAILURE);
-        }
-        while(getline(f, line)) {
-            queryLine(lsm, line, strings);
-        }
-    }
+    
+//    auto lsm = LSM<int, int>(800,20,1.0,0.00100,1024,20);
+//    auto strings = vector<string>(3);
+//    if (argc == 1){
+//    cout << "LSM Tree DSL Interactive Mode" << endl;
+//        while (true){
+//            cout << "> ";
+//            string input;
+//            getline(cin, input);
+//            queryLine(lsm, input, strings);
+//        }
+//    }
+//    else{
+//        string line;
+//        ifstream f;
+//        for (int i = 1; i < argc; ++i){
+//            f.open(argv[i]);
+//            
+//            if(!f.is_open()) {
+//                perror("Error open");
+//                exit(EXIT_FAILURE);
+//            }
+//            while(getline(f, line)) {
+//                queryLine(lsm, line, strings);
+//            }
+//        }
+//    }
 
 
 

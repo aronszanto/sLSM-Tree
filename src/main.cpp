@@ -122,13 +122,8 @@ void insertLookupTest(){
     clock_gettime(CLOCK_MONOTONIC, &start);
     int lookup;
     for (int i = 0 ; i < num_inserts; i++) {
-//        if ( i % 100000 == 0 ) cout << "lookup " << i << endl;
-        ;
         lsmTree.lookup(to_insert[i], lookup);
-//        cout << lookup << endl;
         assert(lookup == i);
-//        if (lookup != i)
-//            cout << "LOOKUP TEST FAILED ON ITERATION " << i << ". Got " << lookup << " but was expecting " << i << ".\n";
     }
     clock_gettime(CLOCK_MONOTONIC, &finish);
     double total_lookup = (finish.tv_sec - start.tv_sec);

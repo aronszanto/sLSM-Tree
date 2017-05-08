@@ -79,7 +79,7 @@ public:
         
     }
     
-    bool insert_key(K &key, V &value) {
+    void insert_key(K &key, V &value) {
         //        cout << "inserting key " << key << endl;
         if (C_0[_activeRun]->num_elements() >= _eltsPerRun){
             //            cout << "run " << _activeRun << " full, moving to next" << endl;

@@ -86,10 +86,10 @@ void insertLookupTest(){
     std::normal_distribution<double>  distribution(0, 10000000);
 
     
-    const int num_inserts = 10000000;
+    const int num_inserts = 100 * 5000;
     const int max_levels = 16;
     const int num_runs = 20;
-    const int buffer_capacity = 800;
+    const int buffer_capacity = 5000;
     const double bf_fp = .0001;
     const int pageSize = 512;
     const int disk_runs_per_level = 5;
@@ -236,13 +236,13 @@ void customTest(LSMParams &lp, double &ips, double &lps){
 }
 void cartesianTest(){
     cout << "num_inserts,num_runs,elts_per_run,BF_FP,merge_fraction,page_size,disk_runs_per_level,inserts_per_sec,lookups_per_sec,total_insert,total_lookup" << endl;
-    vector<int> numins = {300000};
-    vector<int> numruns = {20, 50, 100};
-    vector<int> eltspers = {500, 800, 1000};
-    vector<double> bf_fp = {0.0001, .001, .01};
-    vector<double> merge_frac = {.5, 1.0};
-    vector<int> pss = {512, 1024};
-    vector<int> drpl = {2, 5, 10, 20};
+    vector<int> numins = {1000000};
+    vector<int> numruns = {200, 500, 1000};
+    vector<int> eltspers = {500, 1000, 2000};
+    vector<double> bf_fp = {0.001};
+    vector<double> merge_frac = {1.0};
+    vector<int> pss = {512};
+    vector<int> drpl = {5};
     auto res = vector<tuple<double, double, LSMParams>>();
     
     for (int i = 0; i < numins.size(); i++)
@@ -700,10 +700,10 @@ int main(int argc, char *argv[]){
 //    insertLookupTest();
 //    updateDeleteTest();
 //    rangeTest();
-    for (double d = 10; d < 100000000; d *= 10)
-        concurrentLookupTest(d);
+//    for (double d = 10; d < 100000000; d *= 10)
+//        concurrentLookupTest(d);
 //    tailLatencyTest();
-//    cartesianTest();
+    cartesianTest();
 //    hardCodeTest(1000000000,20,800,0.00100,1.0,1024,20);
     
 //    auto lsm = LSM<int, int>(800,20,1.0,0.00100,1024,20);

@@ -51,7 +51,7 @@ public:
 };
 
 
-template<class K, class V, int MAXLEVEL = 16>
+template<class K, class V, int MAXLEVEL = 12>
 class SkipList : public Run<K,V>
 {
 public:

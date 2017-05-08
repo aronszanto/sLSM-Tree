@@ -236,13 +236,13 @@ void customTest(LSMParams &lp, double &ips, double &lps){
 }
 void cartesianTest(){
     cout << "num_inserts,num_runs,elts_per_run,BF_FP,merge_fraction,page_size,disk_runs_per_level,inserts_per_sec,lookups_per_sec,total_insert,total_lookup" << endl;
-    vector<int> numins = {1000000};
-    vector<int> numruns = {200, 500, 1000};
-    vector<int> eltspers = {500, 1000, 2000};
-    vector<double> bf_fp = {0.001};
-    vector<double> merge_frac = {1.0};
-    vector<int> pss = {512};
-    vector<int> drpl = {5};
+    vector<int> numins = {10000000};
+    vector<int> numruns = {50};
+    vector<int> eltspers = {800};
+    vector<double> bf_fp = {.001};
+    vector<double> merge_frac = {.1, .25, .5, .8, 1.0};
+    vector<int> pss = {1024};
+    vector<int> drpl = {10};
     auto res = vector<tuple<double, double, LSMParams>>();
     
     for (int i = 0; i < numins.size(); i++)

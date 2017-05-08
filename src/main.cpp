@@ -240,9 +240,9 @@ void cartesianTest(){
     vector<int> numruns = {50};
     vector<int> eltspers = {800};
     vector<double> bf_fp = {.001};
-    vector<double> merge_frac = {.1, .25, .5, .8, 1.0};
+    vector<double> merge_frac = {.5, .75, 1.0};
     vector<int> pss = {1024};
-    vector<int> drpl = {10};
+    vector<int> drpl = {5, 10, 20};
     auto res = vector<tuple<double, double, LSMParams>>();
     
     for (int i = 0; i < numins.size(); i++)

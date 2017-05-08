@@ -610,7 +610,7 @@ void updateLookupSkewTest(){
     
     
     const int num_total = 50000000;
-    const int num_runs = 50;
+    const int num_runs = 200;
     const int buffer_capacity = 800;
     const double bf_fp = .001;
     const int pageSize = 512;

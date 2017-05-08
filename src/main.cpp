@@ -602,6 +602,56 @@ void hardCodeTest(int num_inserts, int num_runs, int elts_per_run, double bf_fp,
         double lpersec = num_inserts / total_lookup;
         cout << num_inserts << "," << num_runs << "," << elts_per_run << "," << bf_fp << "," << merge_fraction << "," << pageSize << "," << disk_runs_per_level << "," << ipersec << "," << lpersec <<  "," << total_insert << "," << total_lookup << endl;
 }
+
+void updateLookupSkewTest(){
+    std::random_device                  rand_dev;
+    std::mt19937                        generator(rand_dev());
+    
+    
+    
+    const int num_total = 10000000;
+    const int num_runs = 50;
+    const int buffer_capacity = 800;
+    const double bf_fp = .001;
+    const int pageSize = 512;
+    const int disk_runs_per_level = 10;
+    const double merge_fraction = 1;
+    
+    cout << "lookup_pct total_time" << endl;
+    for (double i = .1; i < .95; i+=.1){
+        LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
+
+        std::uniform_int_distribution<int>  distribution(0, INT_MAX);
+        std::vector<int> to_query;
+        for (int j = 0; j < num_total; j++) {
+            
+            int num = (int) distribution(generator);
+            to_query.push_back(num);
+        }
+        int lookup;
+        clock_gettime(CLOCK_MONOTONIC, &start);
+
+        for (int j = 0; j < num_total; ++j){
+            if (to_query[j] < (int) floor(i * INT_MAX)){
+                
+                lsmTree.lookup(to_query[j], lookup);
+//                cout << "lookup " << to_query[j] << endl;
+            }
+            else {
+                lsmTree.insert_key(to_query[j], j);
+//                cout << "insert " << to_query[j] << endl;
+            }
+        }
+        clock_gettime(CLOCK_MONOTONIC, &finish);
+        double total = (finish.tv_sec - start.tv_sec);
+        total += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+
+        cout << i << " " << total << endl;
+    }
+
+
+}
+
 void loadFromBin(LSM<int, int> &lsm, string filename){
     FILE *intArrayFile;
     char *buffer;
@@ -630,6 +680,8 @@ void loadFromBin(LSM<int, int> &lsm, string filename){
         read += 2;
     }
 }
+
+
 void queryLine(LSM<int, int> &lsm, const string &line, vector<string> &strings){
     unsigned long pos = line.find(' ');
     unsigned long ip = 0;
@@ -703,7 +755,8 @@ int main(int argc, char *argv[]){
 //    for (double d = 10; d < 100000000; d *= 10)
 //        concurrentLookupTest(d);
 //    tailLatencyTest();
-    cartesianTest();
+//    cartesianTest();
+    updateLookupSkewTest();
 //    hardCodeTest(1000000000,20,800,0.00100,1.0,1024,20);
     
 //    auto lsm = LSM<int, int>(800,20,1.0,0.00100,1024,20);

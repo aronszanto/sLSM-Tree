@@ -20,7 +20,7 @@
 
 using namespace std;
 
-template<class Key, class Hash = hash<Key>>
+template<class Key>
 class BloomFilter {
 public:
     BloomFilter(uint64_t n, double fp) {

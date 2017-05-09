@@ -86,10 +86,10 @@ void insertLookupTest(){
     std::normal_distribution<double>  distribution(0, 10000000);
 
     
-    const int num_inserts = 100 * 5000;
+    const int num_inserts = 10000000;
     const int max_levels = 16;
     const int num_runs = 20;
-    const int buffer_capacity = 5000;
+    const int buffer_capacity = 800;
     const double bf_fp = .0001;
     const int pageSize = 512;
     const int disk_runs_per_level = 5;
@@ -388,6 +388,43 @@ void updateDeleteTest(){
 
     
 }
+void rangeTimeTest(){
+    const int num_inserts = 10000000;
+    const int max_levels = 16;
+    const int num_runs = 20;
+    const int buffer_capacity = 500;
+    const double bf_fp = .01;
+    const int pageSize = 512;
+    const int disk_runs_per_level = 5;
+    const double merge_fraction = 1;
+    LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
+    
+    std::vector<int> to_insert;
+    
+    for (int i = 0; i < num_inserts; i++) {
+        to_insert.push_back(i);
+    }
+    shuffle(to_insert.begin(), to_insert.end(), generator);
+    
+    for (int i = 0; i < num_inserts; i++) {
+        lsmTree.insert_key(to_insert[i], i);
+    }
+    cout << "range_size time" << endl;
+    for (int i = 10; i < 1000001; i *= 10){
+        
+        int n1 = -i;
+        int n2 = i;
+        
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        
+        lsmTree.range(n1, n2);
+        clock_gettime(CLOCK_MONOTONIC, &finish);
+        double total_range= (finish.tv_sec - start.tv_sec);
+        total_range += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+        cout << i << " " << total_range << endl;
+        
+    }
+}
 void rangeTest(){
     const int num_inserts = 10000000;
     const int max_levels = 16;
@@ -396,7 +433,7 @@ void rangeTest(){
     const double bf_fp = .01;
     const int pageSize = 512;
     const int disk_runs_per_level = 5;
-    const double merge_fraction = .7;
+    const double merge_fraction = 1;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
 
     std::vector<int> to_insert;
@@ -609,13 +646,13 @@ void updateLookupSkewTest(){
     
     
     
-    const int num_total = 50000000;
-    const int num_runs = 200;
+    const int num_total = 10000000;
+    const int num_runs = 20;
     const int buffer_capacity = 800;
     const double bf_fp = .001;
     const int pageSize = 512;
-    const int disk_runs_per_level = 10;
-    const double merge_fraction = 1;
+    const int disk_runs_per_level = 5;
+    const double merge_fraction = .5;
     
     cout << "lookup_pct total_time" << endl;
     for (double i = .1; i < .95; i+=.1){
@@ -752,11 +789,12 @@ int main(int argc, char *argv[]){
 //    insertLookupTest();
 //    updateDeleteTest();
 //    rangeTest();
+    rangeTimeTest();
 //    for (double d = 10; d < 100000000; d *= 10)
 //        concurrentLookupTest(d);
 //    tailLatencyTest();
 //    cartesianTest();
-    updateLookupSkewTest();
+//    updateLookupSkewTest();
 //    hardCodeTest(1000000000,20,800,0.00100,1.0,1024,20);
     
 //    auto lsm = LSM<int, int>(800,20,1.0,0.00100,1024,20);

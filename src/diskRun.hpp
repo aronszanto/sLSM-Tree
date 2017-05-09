@@ -60,7 +60,7 @@ public:
     K minKey = INT_MIN;
     K maxKey = INT_MIN;
     
-    DiskRun<K,V> (unsigned long long capacity, unsigned int pageSize, int level, int runID, double bf_fp):_capacity(capacity),_level(level), _iMaxFP(0), pageSize(pageSize), _runID(runID), _bf_fp(bf_fp), bf(capacity, bf_fp) {
+    DiskRun<K,V> (unsigned long capacity, unsigned int pageSize, int level, int runID, double bf_fp):_capacity(capacity),_level(level), _iMaxFP(0), pageSize(pageSize), _runID(runID), _bf_fp(bf_fp), bf(capacity, bf_fp) {
         
         _filename = "C_" + to_string(level) + "_" + to_string(runID) + ".txt";
         
@@ -110,10 +110,10 @@ public:
             exit(EXIT_FAILURE);
         }
     }
-    void setCapacity(unsigned long long newCap){
+    void setCapacity(unsigned long newCap){
         _capacity = newCap;
     }
-    unsigned long long getCapacity(){
+    unsigned long getCapacity(){
         return _capacity;
     }
     void writeData(const KVPair_t *run, const size_t offset, const unsigned long len) {
@@ -125,6 +125,7 @@ public:
     void constructIndex(){
         // construct fence pointers and write BF
         _fencePointers.resize(0);
+        _fencePointers.reserve(_capacity / pageSize);
         _iMaxFP = -1; // TODO IS THIS SAFE?
         for (int j = 0; j < _capacity; j++) {
             bf.add((K*) &map[j].key, sizeof(K));
@@ -161,7 +162,7 @@ public:
         return min;
     }
     
-    void get_flanking_FP(const K &key, unsigned &start, unsigned &end){
+    void get_flanking_FP(const K &key, unsigned long &start, unsigned long &end){
         if (_iMaxFP == 0) {
             start = 0;
             end = _capacity;
@@ -209,9 +210,9 @@ public:
     }
     
     unsigned long get_index(const K &key, bool &found){
-        unsigned  start, end;
+        unsigned  long start, end;
         get_flanking_FP(key, start, end);
-        V ret = binary_search(start, end - start, key, found);
+        unsigned long ret = binary_search(start, end - start, key, found);
         return ret;
     }
     
@@ -250,7 +251,7 @@ public:
     }
     
 private:
-    unsigned long long _capacity;
+    unsigned long _capacity;
     string _filename;
     int _level;
     vector<K> _fencePointers;
@@ -290,7 +291,7 @@ private:
     }
     
     void doubleSize(){
-        unsigned long long new_capacity = _capacity * 2;
+        unsigned long new_capacity = _capacity * 2;
         
         size_t new_filesize = new_capacity * sizeof(KVPair_t);
         int result = lseek(fd, new_filesize - 1, SEEK_SET);

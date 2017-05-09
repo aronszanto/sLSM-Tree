@@ -87,7 +87,6 @@ void insertLookupTest(){
 
     
     const int num_inserts = 10000000;
-    const int max_levels = 16;
     const int num_runs = 20;
     const int buffer_capacity = 800;
     const double bf_fp = .0001;
@@ -134,7 +133,6 @@ void insertLookupTest(){
 }
 void runInOrderTest() {
     const int num_inserts = 1000000;
-    const int max_levels = 16;
     const int num_runs = 16;
     const int buffer_capacity = 1000;
     const double bf_fp = .2;
@@ -334,7 +332,6 @@ void fencePointerTest(){
 
 void updateDeleteTest(){
     const int num_inserts = 500;
-    const int max_levels = 16;
     const int num_runs = 3;
     const int buffer_capacity = 50;
     const double bf_fp = .01;
@@ -390,7 +387,6 @@ void updateDeleteTest(){
 }
 void rangeTimeTest(){
     const int num_inserts = 50000000;
-    const int max_levels = 16;
     const int num_runs = 20;
     const int buffer_capacity = 500;
     const double bf_fp = .01;
@@ -427,7 +423,6 @@ void rangeTimeTest(){
 }
 void rangeTest(){
     const int num_inserts = 10000000;
-    const int max_levels = 16;
     const int num_runs = 20;
     const int buffer_capacity = 500;
     const double bf_fp = .01;
@@ -477,7 +472,6 @@ void concurrentLookupTest(double iv){
     
     const int num_inserts = 10000000;
     const int num_lookups = 10000000;
-    const int max_levels = 16;
     const int num_runs = 20;
     const int buffer_capacity = 800;
     const double bf_fp = .001;
@@ -571,7 +565,6 @@ void tailLatencyTest(){
     
     
     const int num_inserts = 10000000;
-    const int max_levels = 16;
     const int num_runs = 200;
     const int buffer_capacity = 1400;
     const double bf_fp = .001;
@@ -691,7 +684,6 @@ void updateLookupSkewTest(){
 
 void loadFromBin(LSM<int, int> &lsm, string filename){
     FILE *intArrayFile;
-    char *buffer;
     long size;
     
     

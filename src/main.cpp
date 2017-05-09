@@ -389,7 +389,7 @@ void updateDeleteTest(){
     
 }
 void rangeTimeTest(){
-    const int num_inserts = 10000000;
+    const int num_inserts = 50000000;
     const int max_levels = 16;
     const int num_runs = 20;
     const int buffer_capacity = 500;
@@ -410,7 +410,7 @@ void rangeTimeTest(){
         lsmTree.insert_key(to_insert[i], i);
     }
     cout << "range_size time" << endl;
-    for (int i = 10; i < 4000001; i *= 10){
+    for (int i = 20; i < 20000001; i *= 10){
         
         int n1 = -i;
         int n2 = i;

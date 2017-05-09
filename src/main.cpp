@@ -410,7 +410,7 @@ void rangeTimeTest(){
         lsmTree.insert_key(to_insert[i], i);
     }
     cout << "range_size time" << endl;
-    for (int i = 10; i < 1000001; i *= 10){
+    for (int i = 10; i < 4000001; i *= 10){
         
         int n1 = -i;
         int n2 = i;

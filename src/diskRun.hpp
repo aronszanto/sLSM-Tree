@@ -124,7 +124,7 @@ public:
     }
     void constructIndex(){
         // construct fence pointers and write BF
-        _fencePointers.resize(0);
+//        _fencePointers.resize(0);
         _fencePointers.reserve(_capacity / pageSize);
         _iMaxFP = -1; // TODO IS THIS SAFE?
         for (int j = 0; j < _capacity; j++) {
@@ -133,6 +133,9 @@ public:
                 _fencePointers.push_back(map[j].key);
                 _iMaxFP++;
             }
+        }
+        if (_iMaxFP >= 0){
+            _fencePointers.resize(_iMaxFP + 1);
         }
         
         minKey = map[0].key;

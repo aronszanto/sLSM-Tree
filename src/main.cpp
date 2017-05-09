@@ -82,8 +82,8 @@ void bloomFilterTest(){
 void insertLookupTest(){
     std::random_device                  rand_dev;
     std::mt19937                        generator(rand_dev());
-//    std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
-    std::normal_distribution<double>  distribution(0, 10000000);
+    std::uniform_int_distribution<int>  distribution(INT32_MIN, INT32_MAX);
+//    std::normal_distribution<double>  distribution(0, 10000000);
 
     
     const int num_inserts = 10000000;
@@ -91,7 +91,7 @@ void insertLookupTest(){
     const int buffer_capacity = 800;
     const double bf_fp = .0001;
     const int pageSize = 512;
-    const int disk_runs_per_level = 5;
+    const int disk_runs_per_level = 4;
     const double merge_fraction = 1;
     LSM<int32_t, int32_t> lsmTree = LSM<int32_t, int32_t>(buffer_capacity, num_runs,merge_fraction, bf_fp, pageSize, disk_runs_per_level);
     
@@ -778,10 +778,10 @@ void queryLine(LSM<int, int> &lsm, const string &line, vector<string> &strings){
 }
 int main(int argc, char *argv[]){
 
-//    insertLookupTest();
+    insertLookupTest();
 //    updateDeleteTest();
 //    rangeTest();
-    rangeTimeTest();
+//    rangeTimeTest();
 //    for (double d = 10; d < 100000000; d *= 10)
 //        concurrentLookupTest(d);
 //    tailLatencyTest();

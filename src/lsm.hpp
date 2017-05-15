@@ -96,28 +96,21 @@ public:
     }
     
     void insert_key(K &key, V &value) {
-        //        cout << "inserting key " << key << endl;
         if (C_0[_activeRun]->num_elements() >= _eltsPerRun){
-            //            cout << "run " << _activeRun << " full, moving to next" << endl;
             ++_activeRun;
         }
         
         if (_activeRun >= _num_runs){
-            //            cout << "need to merge" << endl;
             do_merge();
         }
         
-        //        cout << "inserting key " << key << " to run " << _activeRun << endl;
         C_0[_activeRun]->insert_key(key,value);
         filters[_activeRun]->add(&key, sizeof(K));
     }
     
     bool lookup(K &key, V &value){
         bool found = false;
-        // TODO keep track of min/max in runs?
-        //        cout << "looking for key " << key << endl;
         for (int i = _activeRun; i >= 0; --i){
-            //            cout << "... in run/filter " << i << endl;
             if (key < C_0[i]->get_min() || key > C_0[i]->get_max() || !filters[i]->mayContain(&key, sizeof(K)))
                 continue;
             
@@ -180,7 +173,7 @@ public:
                 diskLevels[j]->runs[r]->range(key1, key2, i1, i2);
                 if (i2 - i1 != 0){
                     auto oldSize = eltsInRange.size();
-                    eltsInRange.reserve(oldSize + (i2 - i1)); // also over-reserve space
+                    eltsInRange.reserve(oldSize + (i2 - i1)); // also over-reserves space
                     for (unsigned long m = i1; m < i2; ++m){
                         auto KV = diskLevels[j]->runs[r]->map[m];
                         V dummy = ht.putIfEmpty(KV.key, KV.value);
@@ -288,14 +281,11 @@ public:
             delete (bf_to_merge)[i];
         }
         sort(to_merge.begin(), to_merge.end());
-//        cout << "thread " << pthread_self() << " trying to lock mergeLock" << endl;
         mergeLock->lock();
-//        cout << "thread " << pthread_self() << " merging to disk" << endl;
         if (diskLevels[0]->levelFull()){
             mergeRunsToLevel(1);
         }
         diskLevels[0]->addRunByArray(&to_merge[0], to_merge.size());
-//        cout << "thread " << pthread_self() << " unlocking" << endl;
         mergeLock->unlock();
         
     }
@@ -309,13 +299,11 @@ public:
             runs_to_merge.push_back(C_0[i]);
             bf_to_merge.push_back(filters[i]);
         }
-//        cout << "main thread want to merge to disk" << endl;
         if (mergeThread.joinable()){
-//            cout << "waiting on thread..."<< endl;
             mergeThread.join();
         }
-        mergeThread = thread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge);
-//        merge_runs(runs_to_merge, bf_to_merge);
+        mergeThread = thread (&LSM::merge_runs, this, runs_to_merge,bf_to_merge); // comment for single threaded merging
+//        merge_runs(runs_to_merge, bf_to_merge); // uncomment for single threaded merging
         C_0.erase(C_0.begin(), C_0.begin() + _num_to_merge);
         filters.erase(filters.begin(), filters.begin() + _num_to_merge);
         

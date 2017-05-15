@@ -31,3 +31,4 @@
 # MacOS files
 *.xcodeproj*
 disk_files/
+cs265-sysproj/

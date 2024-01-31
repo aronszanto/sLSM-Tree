@@ -1,5 +1,5 @@
 # sLSM-Tree
-[![GitHub Clones](https://img.shields.io/badge/dynamic/json?color=success&label=Clone&query=count&url=https://gist.githubusercontent.com/aronszanto/333f7e61dbf30bfce5ade0152ea293a8/raw/clone.json&logo=github)](https://github.com/MShawon/github-clone-count-badge)
+[![GitHub Clones](https://img.shields.io/badge/dynamic/json?color=success&label=Clone&query=count&url=https://gist.githubusercontent.com/aronszanto/333f7e61dbf30bfce5ade0152ea293a8/raw/clone.json&logo=github)](https://github.com/MShawon/github-clone-count-badge) (Since 1/31/2024)
 
 
 Research Abstract:
